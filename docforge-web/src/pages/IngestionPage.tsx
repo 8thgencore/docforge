@@ -2,17 +2,10 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-  Select,
-} from '@/components/ui'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select } from '@/components/ui'
+import { GroupSelector } from '@/features/groups/group-selector'
+import { useGroups } from '@/features/groups/use-groups'
+import { TagInput } from '@/features/tags/tag-input'
 import { api } from '@/shared/api/client'
 import { toApiError } from '@/shared/api/errors'
 import { useApiConfig } from '@/shared/api/use-api-config'
@@ -21,8 +14,9 @@ import { useI18n } from '@/shared/i18n/use-i18n'
 export const IngestionPage = () => {
   const config = useApiConfig()
   const { t } = useI18n()
-  const [groupId, setGroupId] = useState('')
-  const [category, setCategory] = useState('')
+  const groupsQuery = useGroups()
+  const [selectedGroupId, setSelectedGroupId] = useState('')
+  const [tag, setTag] = useState('')
   const [ingestionId, setIngestionId] = useState('')
   const [uploadMode, setUploadMode] = useState<'files' | 'zip'>('files')
   const [files, setFiles] = useState<File[]>([])
@@ -30,22 +24,26 @@ export const IngestionPage = () => {
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
+      if (!selectedGroupId) {
+        throw new Error(t('groups.selectGroup'))
+      }
+
       if (uploadMode === 'files') {
         if (!files.length) {
-          throw new Error('Select at least one file')
+          throw new Error(t('ingestion.selectFilesError'))
         }
-        return api.uploadDocuments(config, groupId, files, category)
+        return api.uploadDocuments(config, selectedGroupId, files, tag)
       }
 
       if (!zipFile) {
-        throw new Error('Select a zip file')
+        throw new Error(t('ingestion.selectZipError'))
       }
 
-      return api.uploadZip(config, groupId, zipFile, category)
+      return api.uploadZip(config, selectedGroupId, zipFile, tag)
     },
     onSuccess: (data) => {
       setIngestionId(data.ingestion_id)
-      toast.success(`Ingestion started: ${data.ingestion_id}`)
+      toast.success(`${t('ingestion.started')}: ${data.ingestion_id}`)
     },
     onError: (error) => {
       toast.error(toApiError(error).message)
@@ -84,14 +82,12 @@ export const IngestionPage = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="group-id">{t('ingestion.groupId')}</Label>
-              <Input id="group-id" value={groupId} onChange={(event) => setGroupId(event.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category">{t('ingestion.category')}</Label>
-              <Input id="category" value={category} onChange={(event) => setCategory(event.target.value)} />
-            </div>
+            <GroupSelector
+              groups={groupsQuery.data ?? []}
+              value={selectedGroupId}
+              onChange={setSelectedGroupId}
+            />
+            <TagInput value={tag} onChange={setTag} label={t('tags.labelOptional')} />
             <div className="grid gap-2">
               <Label htmlFor="mode">{t('ingestion.mode')}</Label>
               <Select
@@ -114,7 +110,7 @@ export const IngestionPage = () => {
             )}
             <Button
               onClick={() => uploadMutation.mutate()}
-              disabled={uploadMutation.isPending || !groupId || !config.apiKey}
+              disabled={uploadMutation.isPending || !selectedGroupId || !config.apiKey}
             >
               {uploadMutation.isPending ? t('ingestion.uploading') : t('ingestion.start')}
             </Button>

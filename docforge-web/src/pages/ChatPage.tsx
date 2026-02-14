@@ -2,7 +2,10 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Textarea } from '@/components/ui'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Label, Textarea } from '@/components/ui'
+import { GroupSelector } from '@/features/groups/group-selector'
+import { useGroups } from '@/features/groups/use-groups'
+import { TagInput } from '@/features/tags/tag-input'
 import { api } from '@/shared/api/client'
 import { toApiError } from '@/shared/api/errors'
 import type { ChatResponse } from '@/shared/api/types'
@@ -11,18 +14,19 @@ import { useI18n } from '@/shared/i18n/use-i18n'
 
 export const ChatPage = () => {
   const config = useApiConfig()
+  const groupsQuery = useGroups()
   const { t } = useI18n()
   const [query, setQuery] = useState('')
-  const [groupId, setGroupId] = useState('')
-  const [category, setCategory] = useState('')
+  const [selectedGroupId, setSelectedGroupId] = useState('')
+  const [tag, setTag] = useState('')
   const [response, setResponse] = useState<ChatResponse | null>(null)
 
   const chatMutation = useMutation({
     mutationFn: () =>
       api.chat(config, {
         query,
-        group_id: groupId || undefined,
-        category: category || undefined,
+        group_id: selectedGroupId || undefined,
+        tag: tag || undefined,
       }),
     onSuccess: (data) => {
       setResponse(data)
@@ -40,14 +44,13 @@ export const ChatPage = () => {
       <CardContent>
         <div className="grid gap-4">
           <div className="grid gap-2 md:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="group-id">{t('search.groupId')}</Label>
-              <Input id="group-id" value={groupId} onChange={(event) => setGroupId(event.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category">{t('search.category')}</Label>
-              <Input id="category" value={category} onChange={(event) => setCategory(event.target.value)} />
-            </div>
+            <GroupSelector
+              groups={groupsQuery.data ?? []}
+              value={selectedGroupId}
+              onChange={setSelectedGroupId}
+              allowAll
+            />
+            <TagInput value={tag} onChange={setTag} label={t('tags.labelFilter')} />
           </div>
 
           <div className="grid gap-2">

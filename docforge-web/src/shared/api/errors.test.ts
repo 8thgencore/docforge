@@ -21,7 +21,7 @@ describe('toApiError', () => {
 
   it('handles non-axios errors', () => {
     const mapped = toApiError(new Error('boom'))
-    expect(mapped.message).toBe('Unexpected error')
+    expect(mapped.message).toBe('boom')
   })
 
   it('guards axios check', () => {

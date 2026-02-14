@@ -81,7 +81,7 @@ async def ingest_documents_task(job_id: str, document_ids: list[str]) -> dict:
                             "document_id": str(document.id),
                             "chunk_id": point_id,
                             "filename": document.filename,
-                            "category": document.category,
+                            "tag": document.tag,
                             "text": chunk_text,
                         },
                     )

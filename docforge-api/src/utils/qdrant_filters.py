@@ -3,7 +3,7 @@ from uuid import UUID
 from qdrant_client import models as qm
 
 
-def build_scope_filter(group_id: UUID | None, category: str | None) -> qm.Filter | None:
+def build_scope_filter(group_id: UUID | None, tag: str | None) -> qm.Filter | None:
     must: list[qm.Condition] = []
     if group_id is not None:
         must.append(
@@ -12,11 +12,11 @@ def build_scope_filter(group_id: UUID | None, category: str | None) -> qm.Filter
                 match=qm.MatchValue(value=str(group_id)),
             ),
         )
-    if category:
+    if tag:
         must.append(
             qm.FieldCondition(
-                key="category",
-                match=qm.MatchValue(value=category),
+                key="tag",
+                match=qm.MatchValue(value=tag),
             ),
         )
     if not must:

@@ -26,7 +26,7 @@ async def search_documents(
         session=session,
         query=payload.query,
         group_id=payload.group_id,
-        category=payload.category,
+        tag=payload.tag,
         top_k=payload.top_k,
     )
     return SearchResponse(
@@ -35,7 +35,7 @@ async def search_documents(
                 chunk_id=item.chunk_id,
                 document_id=item.document_id,
                 filename=item.filename,
-                category=item.category,
+                tag=item.tag,
                 score=item.score,
                 text=item.text,
             )
@@ -54,7 +54,7 @@ async def chat(payload: ChatRequest, session: AsyncSession = Depends(get_session
         session=session,
         query=payload.query,
         group_id=payload.group_id,
-        category=payload.category,
+        tag=payload.tag,
         top_k=top_k,
     )
     return ChatResponse(answer=answer, citations=citations, insufficient_context=insufficient_context)
@@ -69,7 +69,7 @@ async def generate_draft(
     return await draft_service.generate_draft(
         session=session,
         group_id=payload.group_id,
-        category=payload.category,
+        tag=payload.tag,
         prompt=payload.prompt,
         length=payload.length,
         tone=payload.tone,

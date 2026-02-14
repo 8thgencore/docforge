@@ -40,6 +40,14 @@ class DocumentGroup(Base):
     ingestion_jobs: Mapped[list["IngestionJob"]] = relationship(back_populates="group", cascade="all,delete")
 
 
+class DocumentTag(Base):
+    __tablename__ = "document_tags"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class Document(Base):
     __tablename__ = "documents"
 
@@ -49,7 +57,7 @@ class Document(Base):
         ForeignKey("document_groups.id", ondelete="CASCADE"),
         index=True,
     )
-    category: Mapped[str | None] = mapped_column(String(255), index=True, nullable=True)
+    tag: Mapped[str | None] = mapped_column("category", String(255), index=True, nullable=True)
     source_type: Mapped[SourceType] = mapped_column(Enum(SourceType), default=SourceType.upload)
     source_uri: Mapped[str] = mapped_column(Text())
     filename: Mapped[str] = mapped_column(String(512))

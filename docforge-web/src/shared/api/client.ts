@@ -9,11 +9,16 @@ import type {
   DraftRequest,
   DraftResponse,
   GroupCreateRequest,
+  GroupDocumentsClearResponse,
   GroupResponse,
+  GroupUpdateRequest,
   IngestionCreatedResponse,
   IngestionStatusResponse,
   SearchRequest,
   SearchResponse,
+  TagCreateRequest,
+  TagResponse,
+  TagUpdateRequest,
 } from '@/shared/api/types'
 
 const request = async <T>(
@@ -26,14 +31,16 @@ const request = async <T>(
   }
 
   try {
+    const extraHeaders = (options.headers ?? {}) as Record<string, string>
+
     const response = await axios.request<T>({
       baseURL: config.baseUrl,
       url: endpoint,
-      headers: {
-        'X-API-Key': config.apiKey,
-        ...options.headers,
-      },
       ...options,
+      headers: {
+        ...extraHeaders,
+        'X-API-Key': config.apiKey,
+      },
     })
 
     return response.data
@@ -48,31 +55,51 @@ export const api = {
 
   listGroups: (config: ApiConfig) => request<GroupResponse[]>(config, '/groups'),
 
-  uploadDocuments: (config: ApiConfig, groupId: string, files: File[], category?: string) => {
+  listTags: (config: ApiConfig, query?: string) =>
+    request<TagResponse[]>(config, '/tags', {
+      params: query?.trim() ? { q: query.trim(), limit: 20 } : { limit: 20 },
+    }),
+
+  createTag: (config: ApiConfig, payload: TagCreateRequest) =>
+    request<TagResponse>(config, '/tags', { method: 'POST', data: payload }),
+
+  updateTag: (config: ApiConfig, tagId: string, payload: TagUpdateRequest) =>
+    request<TagResponse>(config, `/tags/${tagId}`, { method: 'PATCH', data: payload }),
+
+  deleteTag: (config: ApiConfig, tagId: string) => request<void>(config, `/tags/${tagId}`, { method: 'DELETE' }),
+
+  updateGroup: (config: ApiConfig, groupId: string, payload: GroupUpdateRequest) =>
+    request<GroupResponse>(config, `/groups/${groupId}`, { method: 'PATCH', data: payload }),
+
+  clearGroupDocuments: (config: ApiConfig, groupId: string) =>
+    request<GroupDocumentsClearResponse>(config, `/groups/${groupId}/documents`, { method: 'DELETE' }),
+
+  deleteGroup: (config: ApiConfig, groupId: string) =>
+    request<void>(config, `/groups/${groupId}`, { method: 'DELETE' }),
+
+  uploadDocuments: (config: ApiConfig, groupId: string, files: File[], tag?: string) => {
     const formData = new FormData()
     for (const file of files) {
       formData.append('files', file)
     }
-    if (category?.trim()) {
-      formData.append('category', category)
+    if (tag?.trim()) {
+      formData.append('tag', tag)
     }
     return request<IngestionCreatedResponse>(config, `/groups/${groupId}/ingestions/upload`, {
       method: 'POST',
       data: formData,
-      headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
 
-  uploadZip: (config: ApiConfig, groupId: string, archive: File, category?: string) => {
+  uploadZip: (config: ApiConfig, groupId: string, archive: File, tag?: string) => {
     const formData = new FormData()
     formData.append('archive', archive)
-    if (category?.trim()) {
-      formData.append('category', category)
+    if (tag?.trim()) {
+      formData.append('tag', tag)
     }
     return request<IngestionCreatedResponse>(config, `/groups/${groupId}/ingestions/zip`, {
       method: 'POST',
       data: formData,
-      headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
 

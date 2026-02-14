@@ -97,6 +97,7 @@ class Settings(BaseSettings):
     environment: str = "dev"
     api_v1_prefix: str = "/v1"
     api_key: str | None = None
+    cors_allow_origins: str = "http://localhost:5173"
 
     db: DatabaseSettings = Field(default_factory=DatabaseSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)
@@ -156,6 +157,10 @@ class Settings(BaseSettings):
     @property
     def ollama_embed_model(self) -> str:
         return self.ollama.embed_model
+
+    @property
+    def cors_origins(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_allow_origins.split(",") if origin.strip()]
 
 
 @lru_cache(maxsize=1)

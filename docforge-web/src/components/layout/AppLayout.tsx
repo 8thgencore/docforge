@@ -14,6 +14,7 @@ export const AppLayout = () => {
     { to: '/search', label: t('nav.search') },
     { to: '/chat', label: t('nav.chat') },
     { to: '/draft', label: t('nav.draft') },
+    { to: '/tags', label: t('nav.tags') },
     { to: '/settings', label: t('nav.settings') },
   ]
 

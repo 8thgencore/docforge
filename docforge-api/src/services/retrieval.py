@@ -19,7 +19,7 @@ class RetrievedChunk:
     chunk_id: UUID
     document_id: UUID
     filename: str
-    category: str | None
+    tag: str | None
     text: str
     score: float
 
@@ -34,14 +34,14 @@ class RetrievalService:
         session: AsyncSession,
         query: str,
         group_id: UUID | None,
-        category: str | None,
+        tag: str | None,
         top_k: int,
     ) -> list[RetrievedChunk]:
         query_vector = (await self._ollama.embed_texts([query]))[0]
         vector_hits = await self._qdrant.search(
             query_vector=query_vector,
             group_id=group_id,
-            category=category,
+            tag=tag,
             limit=max(top_k * 2, 12),
         )
 
@@ -57,7 +57,7 @@ class RetrievalService:
                 chunk_id=chunk_id,
                 document_id=document_id,
                 filename=str(payload.get("filename", "unknown")),
-                category=payload.get("category"),
+                tag=payload.get("tag"),
                 text=str(payload.get("text", "")),
                 score=float(hit.score) * 0.7,
             )
@@ -66,7 +66,7 @@ class RetrievalService:
             session=session,
             query=query,
             group_id=group_id,
-            category=category,
+            tag=tag,
             candidate_limit=max(top_k * 25, 200),
         )
 
@@ -81,7 +81,7 @@ class RetrievalService:
                 chunk_id=lexical.chunk_id,
                 document_id=lexical.document_id,
                 filename=lexical.filename,
-                category=lexical.category,
+                tag=lexical.tag,
                 text=lexical.text,
                 score=lexical.score * 0.3,
             )
@@ -94,7 +94,7 @@ class RetrievalService:
         session: AsyncSession,
         query: str,
         group_id: UUID | None,
-        category: str | None,
+        tag: str | None,
         candidate_limit: int,
     ) -> list[RetrievedChunk]:
         stmt = (
@@ -105,8 +105,8 @@ class RetrievalService:
         )
         if group_id is not None:
             stmt = stmt.where(Document.group_id == group_id)
-        if category:
-            stmt = stmt.where(Document.category == category)
+        if tag:
+            stmt = stmt.where(Document.tag == tag)
 
         rows = (await session.execute(stmt)).all()
         results: list[RetrievedChunk] = []
@@ -119,7 +119,7 @@ class RetrievalService:
                     chunk_id=chunk.id,
                     document_id=document.id,
                     filename=document.filename,
-                    category=document.category,
+                    tag=document.tag,
                     text=chunk.text,
                     score=score,
                 ),

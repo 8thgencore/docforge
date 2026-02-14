@@ -46,10 +46,10 @@ class QdrantService:
         self,
         query_vector: list[float],
         group_id: UUID | None,
-        category: str | None,
+        tag: str | None,
         limit: int,
     ) -> list[qm.ScoredPoint]:
-        query_filter = build_scope_filter(group_id=group_id, category=category)
+        query_filter = build_scope_filter(group_id=group_id, tag=tag)
         try:
             return await self._client.search(
                 collection_name=self.collection,
@@ -61,3 +61,17 @@ class QdrantService:
         except Exception:
             # First-run bootstraps may query before any collection exists.
             return []
+
+    async def delete_group_points(self, group_id: UUID) -> None:
+        query_filter = build_scope_filter(group_id=group_id, tag=None)
+        if query_filter is None:
+            return
+        try:
+            await self._client.delete(
+                collection_name=self.collection,
+                points_selector=qm.FilterSelector(filter=query_filter),
+                wait=True,
+            )
+        except Exception:
+            # If collection is not created yet, deleting points is a no-op.
+            return

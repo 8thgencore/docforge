@@ -13,22 +13,27 @@ export class ApiError extends Error {
 }
 
 export const toApiError = (error: unknown): ApiError => {
-  if (!axios.isAxiosError(error)) {
-    return new ApiError('Unexpected error')
+  if (error instanceof ApiError) {
+    return error
   }
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status
+    const details = error.response?.data
 
-  const status = error.response?.status
-  const details = error.response?.data
+    if (status === 401) {
+      return new ApiError('Invalid API key. Check Settings.', status, details)
+    }
+    if (status === 404) {
+      return new ApiError('Resource not found.', status, details)
+    }
+    if (status === 422) {
+      return new ApiError('Validation failed. Check input fields.', status, details)
+    }
 
-  if (status === 401) {
-    return new ApiError('Invalid API key. Check Settings.', status, details)
+    return new ApiError(error.message || 'Request failed', status, details)
   }
-  if (status === 404) {
-    return new ApiError('Resource not found.', status, details)
+  if (error instanceof Error) {
+    return new ApiError(error.message)
   }
-  if (status === 422) {
-    return new ApiError('Validation failed. Check input fields.', status, details)
-  }
-
-  return new ApiError(error.message || 'Request failed', status, details)
+  return new ApiError('Unexpected error')
 }
