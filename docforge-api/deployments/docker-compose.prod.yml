@@ -1,0 +1,106 @@
+services:
+  api:
+    build:
+      context: .
+      target: runtime
+    container_name: docforge-prod-api
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    command: ["docforge-api"]
+    ports:
+      - "38000:8000"
+    networks:
+      - docforge_prod_net
+
+  worker:
+    build:
+      context: .
+      target: runtime
+    container_name: docforge-prod-worker
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    command: ["docforge-worker"]
+    networks:
+      - docforge_prod_net
+
+  db:
+    image: postgres:17.7-alpine
+    container_name: docforge-prod-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 1s
+      timeout: 5s
+      retries: 5
+    networks:
+      - docforge_prod_net
+
+  redis:
+    image: redis:8.2-alpine
+    container_name: docforge-prod-redis
+    command:
+      - /bin/sh
+      - -c
+      - |
+          redis-server \
+            --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}" \
+            --maxmemory 450mb \
+            --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    environment:
+      ALLOW_EMPTY_PASSWORD: "no"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    networks:
+      - docforge_prod_net
+
+  qdrant:
+    image: qdrant/qdrant:v1.16
+    container_name: docforge-prod-qdrant
+    restart: unless-stopped
+    volumes:
+      - qdrant_volume:/qdrant/storage
+    networks:
+      - docforge_prod_net
+
+volumes:
+  postgres_volume:
+    name: docforge_prod_postgres_volume
+  qdrant_volume:
+    name: docforge_prod_qdrant_volume
+
+networks:
+  docforge_prod_net:
+    name: docforge_prod_net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${DOCKER_PROD_SUBNET:-172.30.10.0/24}

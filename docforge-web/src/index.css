@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --font-sans: 'Manrope', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-ring: hsl(var(--ring));
+  --color-destructive: hsl(var(--destructive));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+:root {
+  --background: 36 67% 98%;
+  --foreground: 214 28% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 214 28% 14%;
+  --muted: 32 43% 95%;
+  --muted-foreground: 216 14% 42%;
+  --border: 31 24% 88%;
+  --input: 31 24% 88%;
+  --primary: 193 89% 32%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 205 75% 94%;
+  --secondary-foreground: 208 64% 24%;
+  --ring: 193 89% 32%;
+  --destructive: 355 78% 52%;
+  --radius: 0.8rem;
+}
+
+.dark {
+  --background: 216 27% 10%;
+  --foreground: 37 64% 96%;
+  --card: 214 30% 14%;
+  --card-foreground: 37 64% 96%;
+  --muted: 216 24% 18%;
+  --muted-foreground: 209 18% 70%;
+  --border: 217 20% 24%;
+  --input: 217 20% 24%;
+  --primary: 187 92% 46%;
+  --primary-foreground: 214 33% 10%;
+  --secondary: 209 58% 20%;
+  --secondary-foreground: 190 82% 84%;
+  --ring: 187 92% 46%;
+  --destructive: 356 89% 64%;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+}
+
+#root {
+  min-height: 100vh;
+}
