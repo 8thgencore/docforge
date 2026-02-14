@@ -1,6 +1,6 @@
 import pytest
 
-from docforge.utils.chunking import chunk_text
+from src.utils.chunking import chunk_text
 
 
 def test_chunk_text_respects_max_chars() -> None:

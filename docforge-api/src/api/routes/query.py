@@ -4,14 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from docforge.core.config import get_settings
-from docforge.db.session import get_session
-from docforge.models.entities import Document
-from docforge.schemas.chat import ChatRequest, ChatResponse
-from docforge.schemas.document import DocumentResponse
-from docforge.schemas.draft import DraftRequest, DraftResponse
-from docforge.schemas.search import SearchHit, SearchRequest, SearchResponse
-from docforge.services.container import get_chat_pipeline, get_draft_service, get_retrieval_service
+from src.core.config import get_settings
+from src.db.session import get_session
+from src.models.entities import Document
+from src.schemas.chat import ChatRequest, ChatResponse
+from src.schemas.document import DocumentResponse
+from src.schemas.draft import DraftRequest, DraftResponse
+from src.schemas.search import SearchHit, SearchRequest, SearchResponse
+from src.services.container import get_chat_pipeline, get_draft_service, get_retrieval_service
 
 router = APIRouter(tags=["rag"])
 

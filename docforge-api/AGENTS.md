@@ -23,7 +23,7 @@
 - Python 3.13, 4-space indentation, type hints for public functions and service boundaries.
 - Follow existing naming: `snake_case` for functions/variables/modules, `PascalCase` for classes, `UPPER_SNAKE_CASE` for constants.
 - Keep API handlers thin; move non-trivial logic into `services/`.
-- Prefer explicit imports from package modules (e.g., `docforge.services...`).
+- Prefer explicit imports from package modules (e.g., `src.services...`).
 
 ## Testing Guidelines
 - Framework: `pytest` with `pytest-asyncio` (`asyncio_mode=auto`).

@@ -4,10 +4,10 @@ from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from docforge.schemas.chat import Citation
-from docforge.schemas.draft import DraftResponse
-from docforge.services.ollama import OllamaClient
-from docforge.services.retrieval import RetrievalService
+from src.schemas.chat import Citation
+from src.schemas.draft import DraftResponse
+from src.services.ollama import OllamaClient
+from src.services.retrieval import RetrievalService
 
 
 @dataclass(slots=True)

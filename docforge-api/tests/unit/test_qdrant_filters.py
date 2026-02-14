@@ -1,6 +1,6 @@
 import uuid
 
-from docforge.utils.qdrant_filters import build_scope_filter
+from src.utils.qdrant_filters import build_scope_filter
 
 
 def test_scope_filter_none_when_empty() -> None:

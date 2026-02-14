@@ -10,9 +10,9 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from docforge.core.config import get_settings
-from docforge.db.session import get_session
-from docforge.models.entities import (
+from src.core.config import get_settings
+from src.db.session import get_session
+from src.models.entities import (
     Document,
     DocumentGroup,
     DocumentStatus,
@@ -20,10 +20,10 @@ from docforge.models.entities import (
     IngestionStatus,
     SourceType,
 )
-from docforge.schemas.ingestion import IngestionCreatedResponse, IngestionStatusResponse
-from docforge.services.storage import extract_zip, save_upload
-from docforge.tasks.ingest_tasks import ingest_documents_task
-from docforge.utils.hashing import sha256_file
+from src.schemas.ingestion import IngestionCreatedResponse, IngestionStatusResponse
+from src.services.storage import extract_zip, save_upload
+from src.tasks.ingest_tasks import ingest_documents_task
+from src.utils.hashing import sha256_file
 
 router = APIRouter(tags=["ingestions"])
 settings = get_settings()

@@ -1,6 +1,6 @@
 from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
 
-from docforge.core.config import get_settings
+from src.core.config import get_settings
 
 settings = get_settings()
 

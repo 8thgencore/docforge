@@ -6,7 +6,7 @@ from uuid import UUID
 from qdrant_client import AsyncQdrantClient
 from qdrant_client import models as qm
 
-from docforge.utils.qdrant_filters import build_scope_filter
+from src.utils.qdrant_filters import build_scope_filter
 
 
 class QdrantService:

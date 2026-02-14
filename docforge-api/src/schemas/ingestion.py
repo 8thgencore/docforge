@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from docforge.models.entities import IngestionStatus
+from src.models.entities import IngestionStatus
 
 
 class IngestionCreatedResponse(BaseModel):

@@ -1,4 +1,4 @@
-from docforge.models.entities import (
+from src.models.entities import (
     Document,
     DocumentChunk,
     DocumentGroup,

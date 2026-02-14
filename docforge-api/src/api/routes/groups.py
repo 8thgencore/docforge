@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from docforge.db.session import get_session
-from docforge.models.entities import DocumentGroup
-from docforge.schemas.group import GroupCreateRequest, GroupResponse
+from src.db.session import get_session
+from src.models.entities import DocumentGroup
+from src.schemas.group import GroupCreateRequest, GroupResponse
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 

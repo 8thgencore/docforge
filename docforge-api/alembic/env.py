@@ -3,9 +3,9 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from docforge.core.config import get_settings
-from docforge.db.base import Base
-from docforge.models import entities  # noqa: F401
+from src.core.config import get_settings
+from src.db.base import Base
+from src.models import entities  # noqa: F401
 
 config = context.config
 

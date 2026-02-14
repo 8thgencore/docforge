@@ -3,10 +3,10 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import Depends, FastAPI
 
-from docforge.api.deps import require_api_key
-from docforge.api.router import api_router
-from docforge.core.config import get_settings
-from docforge.core.logging import configure_logging
+from src.api.deps import require_api_key
+from src.api.router import api_router
+from src.core.config import get_settings
+from src.core.logging import configure_logging
 
 settings = get_settings()
 
@@ -33,4 +33,4 @@ async def root() -> dict:
 
 def run() -> None:
     configure_logging()
-    uvicorn.run("docforge.main:app", host="0.0.0.0", port=8300, reload=False)
+    uvicorn.run("main:app", host="0.0.0.0", port=8300, reload=False)

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from docforge.models.entities import DocumentStatus, SourceType
+from src.models.entities import DocumentStatus, SourceType
 
 
 class DocumentResponse(BaseModel):

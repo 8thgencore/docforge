@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from docforge.schemas.chat import Citation
+from src.schemas.chat import Citation
 
 
 class DraftRequest(BaseModel):

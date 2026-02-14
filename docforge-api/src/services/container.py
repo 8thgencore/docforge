@@ -1,11 +1,11 @@
 from functools import lru_cache
 
-from docforge.core.config import get_settings
-from docforge.services.draft import DraftService
-from docforge.services.langgraph_chat import ChatPipeline
-from docforge.services.ollama import OllamaClient
-from docforge.services.qdrant import QdrantService
-from docforge.services.retrieval import RetrievalService
+from src.core.config import get_settings
+from src.services.draft import DraftService
+from src.services.langgraph_chat import ChatPipeline
+from src.services.ollama import OllamaClient
+from src.services.qdrant import QdrantService
+from src.services.retrieval import RetrievalService
 
 
 @lru_cache(maxsize=1)

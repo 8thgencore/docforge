@@ -5,19 +5,19 @@ import logging
 import uuid
 from pathlib import Path
 
-from docforge.core.config import get_settings
-from docforge.db.session import AsyncSessionLocal
-from docforge.models.entities import (
+from src.core.config import get_settings
+from src.db.session import AsyncSessionLocal
+from src.models.entities import (
     Document,
     DocumentChunk,
     DocumentStatus,
     IngestionJob,
     IngestionStatus,
 )
-from docforge.services.container import get_ollama_client, get_qdrant_service
-from docforge.services.parser import parse_document
-from docforge.tasks.broker import broker
-from docforge.utils.chunking import iter_chunks
+from src.services.container import get_ollama_client, get_qdrant_service
+from src.services.parser import parse_document
+from src.tasks.broker import broker
+from src.utils.chunking import iter_chunks
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

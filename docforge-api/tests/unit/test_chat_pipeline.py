@@ -2,9 +2,9 @@ import uuid
 
 import pytest
 
-from docforge.schemas.chat import Citation
-from docforge.services.langgraph_chat import ChatPipeline, build_citations
-from docforge.services.retrieval import RetrievedChunk
+from src.schemas.chat import Citation
+from src.services.langgraph_chat import ChatPipeline, build_citations
+from src.services.retrieval import RetrievedChunk
 
 
 class FakeRetrievalLow:

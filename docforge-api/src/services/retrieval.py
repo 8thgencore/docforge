@@ -8,10 +8,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from docforge.models.entities import Document, DocumentChunk
-from docforge.services.ollama import OllamaClient
-from docforge.services.qdrant import QdrantService
-from docforge.utils.lexical import lexical_score
+from src.models.entities import Document, DocumentChunk
+from src.services.ollama import OllamaClient
+from src.services.qdrant import QdrantService
+from src.utils.lexical import lexical_score
 
 
 @dataclass(slots=True)

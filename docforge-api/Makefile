@@ -1,4 +1,7 @@
 UV ?= uv
+UV_CACHE_DIR ?= ./.uv-cache
+UV_RUN = UV_CACHE_DIR=$(UV_CACHE_DIR) $(UV) run
+UV_SYNC = UV_CACHE_DIR=$(UV_CACHE_DIR) $(UV) sync
 
 STACK_LOCAL ?= docforge-local
 STACK_DEV ?= docforge-dev
@@ -26,22 +29,22 @@ help:
 	@echo "  make docker-prod-down  - остановить prod-стек"
 
 sync:
-	$(UV) sync --python 3.13 --all-extras
+	$(UV_SYNC) --python 3.13 --all-extras
 
 migrate:
-	$(UV) run alembic upgrade head
+	$(UV_RUN) alembic upgrade head
 
 run-api:
-	$(UV) run docforge-api
+	$(UV_RUN) python -c "from src.main import run; run()"
 
 run-worker:
-	$(UV) run docforge-worker
+	$(UV_RUN) python -c "from src.tasks.worker import run_worker; run_worker()"
 
 test:
-	$(UV) run pytest
+	$(UV_RUN) pytest
 
 lint:
-	$(UV) run ruff check .
+	$(UV_RUN) ruff check .
 
 docker-local-up:
 	$(COMPOSE_LOCAL) up -d

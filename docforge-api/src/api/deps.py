@@ -1,6 +1,6 @@
 from fastapi import Header, HTTPException, status
 
-from docforge.core.config import get_settings
+from src.core.config import get_settings
 
 
 async def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
