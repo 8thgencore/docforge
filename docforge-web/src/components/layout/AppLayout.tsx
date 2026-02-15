@@ -303,8 +303,10 @@ export const AppLayout = () => {
         </div>
       )}
 
-      <main className={cn("space-y-6 px-4 py-6 md:px-8", isDockedOpen && (isCollapsed ? "md:ml-20" : "md:ml-72"))}>
-        <Outlet />
+      <main className={cn("px-4 py-6 md:px-8", isDockedOpen && (isCollapsed ? "md:ml-20" : "md:ml-72"))}>
+        <div className="mx-auto w-full max-w-6xl space-y-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

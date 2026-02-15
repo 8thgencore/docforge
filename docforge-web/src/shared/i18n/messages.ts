@@ -56,8 +56,10 @@ export const messages: Record<Language, Record<string, string>> = {
     "groups.updating": "Saving...",
     "groups.updateSuccess": "Group updated",
     "groups.clearDocuments": "Clear documents",
+    "groups.clearConfirm": "Clear all documents in group",
     "groups.clearSuccess": "Deleted documents",
     "groups.deleteAction": "Delete group",
+    "groups.deleteConfirm": "Delete group",
     "groups.deleteSuccess": "Group deleted",
 
     "ingestion.uploadTitle": "Upload Documents",
@@ -174,8 +176,10 @@ export const messages: Record<Language, Record<string, string>> = {
     "groups.updating": "Сохранение...",
     "groups.updateSuccess": "Группа обновлена",
     "groups.clearDocuments": "Очистить документы",
+    "groups.clearConfirm": "Очистить все документы в группе",
     "groups.clearSuccess": "Удалено документов",
     "groups.deleteAction": "Удалить группу",
+    "groups.deleteConfirm": "Удалить группу",
     "groups.deleteSuccess": "Группа удалена",
 
     "ingestion.uploadTitle": "Загрузка документов",

@@ -204,7 +204,13 @@ export const GroupsPage = () => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => clearDocumentsMutation.mutate(group.id)}
+                    onClick={() => {
+                      const shouldClear = window.confirm(`${t("groups.clearConfirm")} "${group.name}"?`);
+                      if (!shouldClear) {
+                        return;
+                      }
+                      clearDocumentsMutation.mutate(group.id);
+                    }}
                     disabled={clearDocumentsMutation.isPending}
                   >
                     {t("groups.clearDocuments")}
@@ -213,7 +219,13 @@ export const GroupsPage = () => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => deleteGroupMutation.mutate(group.id)}
+                    onClick={() => {
+                      const shouldDelete = window.confirm(`${t("groups.deleteConfirm")} "${group.name}"?`);
+                      if (!shouldDelete) {
+                        return;
+                      }
+                      deleteGroupMutation.mutate(group.id);
+                    }}
                     disabled={deleteGroupMutation.isPending}
                   >
                     {t("groups.deleteAction")}
