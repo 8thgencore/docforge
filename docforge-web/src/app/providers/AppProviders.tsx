@@ -1,10 +1,10 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from 'next-themes'
-import { type PropsWithChildren, useState } from 'react'
-import { Toaster } from 'sonner'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
+import { type PropsWithChildren, useState } from "react";
+import { Toaster } from "sonner";
 
-import { SettingsProvider } from '@/features/settings/settings-context'
-import { storageKeys } from '@/shared/config/storage'
+import { SettingsProvider } from "@/features/settings/settings-context";
+import { storageKeys } from "@/shared/config/storage";
 
 export const AppProviders = ({ children }: PropsWithChildren) => {
   const [queryClient] = useState(
@@ -20,7 +20,7 @@ export const AppProviders = ({ children }: PropsWithChildren) => {
           },
         },
       }),
-  )
+  );
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey={storageKeys.theme}>
@@ -31,5 +31,5 @@ export const AppProviders = ({ children }: PropsWithChildren) => {
         </QueryClientProvider>
       </SettingsProvider>
     </ThemeProvider>
-  )
-}
+  );
+};

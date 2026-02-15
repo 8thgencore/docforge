@@ -52,7 +52,9 @@ async def update_tag(
         raise HTTPException(status_code=404, detail="tag not found")
 
     normalized_name = payload.name.strip()
-    existing = await session.scalar(select(DocumentTag).where(DocumentTag.name == normalized_name, DocumentTag.id != tag_id))
+    existing = await session.scalar(
+        select(DocumentTag).where(DocumentTag.name == normalized_name, DocumentTag.id != tag_id),
+    )
     if existing:
         raise HTTPException(status_code=409, detail="tag already exists")
 

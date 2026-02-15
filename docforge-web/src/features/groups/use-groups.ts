@@ -1,14 +1,14 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query";
 
-import { api } from '@/shared/api/client'
-import { useApiConfig } from '@/shared/api/use-api-config'
+import { api } from "@/shared/api/client";
+import { useApiConfig } from "@/shared/api/use-api-config";
 
 export const useGroups = () => {
-  const config = useApiConfig()
+  const config = useApiConfig();
 
   return useQuery({
-    queryKey: ['groups', config.baseUrl, config.apiKey],
+    queryKey: ["groups", config.baseUrl, config.apiKey],
     queryFn: () => api.listGroups(config),
     enabled: Boolean(config.apiKey),
-  })
-}
+  });
+};
