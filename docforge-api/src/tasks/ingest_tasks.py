@@ -5,6 +5,8 @@ import logging
 import uuid
 from pathlib import Path
 
+import httpx
+
 from src.core.config import get_settings
 from src.db.session import AsyncSessionLocal
 from src.models.entities import (
@@ -14,13 +16,16 @@ from src.models.entities import (
     IngestionJob,
     IngestionStatus,
 )
-from src.services.container import get_qdrant_service, get_text_embedder
-from src.services.parser import parse_document
+from src.services.composition.container import get_qdrant_service, get_text_embedder
+from src.services.infrastructure.document_io.parser import parse_document
 from src.tasks.broker import broker
 from src.utils.chunking import iter_chunks
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+EMBED_BATCH_SIZE = 32
+EMBED_RATE_LIMIT_MAX_ATTEMPTS = 8
 
 
 @broker.task(task_name="ingest_documents")
@@ -63,7 +68,12 @@ async def ingest_documents_task(job_id: str, document_ids: list[str]) -> dict:
                     document.status = DocumentStatus.failed
                     continue
 
-                vectors = await embedder.embed_texts(chunks)
+                vectors = await _embed_with_rate_limit_retries(
+                    embedder=embedder,
+                    chunks=chunks,
+                    session=session,
+                    job=job,
+                )
                 point_ids: list[str] = []
                 payloads: list[dict] = []
 
@@ -124,3 +134,60 @@ async def ingest_documents_task(job_id: str, document_ids: list[str]) -> dict:
             job.error = str(exc)
             await session.commit()
             raise
+
+
+def _parse_retry_after(value: str | None) -> float | None:
+    if value is None:
+        return None
+    try:
+        parsed = float(value)
+    except ValueError:
+        return None
+    return parsed if parsed >= 0 else None
+
+
+def _retry_delay_seconds(attempt: int, retry_after: str | None) -> float:
+    parsed_retry_after = _parse_retry_after(retry_after)
+    if parsed_retry_after is not None:
+        return max(0.5, parsed_retry_after)
+    return min(30.0, 1.0 * (2 ** (attempt - 1)))
+
+
+async def _embed_with_rate_limit_retries(
+    *,
+    embedder,
+    chunks: list[str],
+    session,
+    job: IngestionJob,
+) -> list[list[float]]:
+    vectors: list[list[float]] = []
+
+    for start in range(0, len(chunks), EMBED_BATCH_SIZE):
+        batch = chunks[start : start + EMBED_BATCH_SIZE]
+        for attempt in range(1, EMBED_RATE_LIMIT_MAX_ATTEMPTS + 1):
+            try:
+                batch_vectors = await embedder.embed_texts(batch)
+                vectors.extend(batch_vectors)
+                break
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code != 429 or attempt >= EMBED_RATE_LIMIT_MAX_ATTEMPTS:
+                    raise
+
+                delay = _retry_delay_seconds(attempt=attempt, retry_after=exc.response.headers.get("retry-after"))
+                job.status = IngestionStatus.retrying
+                job.stage = "embedding_rate_limited"
+                job.error = f"Embedding provider rate limited (429), retrying in {delay:.1f}s"
+                await session.commit()
+
+                logger.warning(
+                    "embedding rate limited for ingestion %s (attempt=%s), retrying in %.1fs",
+                    job.id,
+                    attempt,
+                    delay,
+                )
+                await asyncio.sleep(delay)
+
+    job.status = IngestionStatus.running
+    job.error = None
+    await session.commit()
+    return vectors

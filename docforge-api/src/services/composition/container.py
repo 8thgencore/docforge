@@ -1,13 +1,13 @@
 from functools import lru_cache
 
 from src.core.config import get_settings
-from src.services.draft import DraftService
-from src.services.langgraph_chat import ChatPipeline
-from src.services.llm_protocols import TextEmbedder, TextGenerator
-from src.services.ollama import OllamaClient
-from src.services.openai_client import OpenAIClient
-from src.services.qdrant import QdrantService
-from src.services.retrieval import RetrievalService
+from src.services.application.chat_pipeline import ChatPipeline
+from src.services.application.draft_service import DraftService
+from src.services.application.retrieval import RetrievalService
+from src.services.domain.llm_protocols import TextEmbedder, TextGenerator
+from src.services.infrastructure.llm.ollama_client import OllamaClient
+from src.services.infrastructure.llm.openai_client import OpenAIClient
+from src.services.infrastructure.vector_store.qdrant_service import QdrantService
 
 
 @lru_cache(maxsize=1)

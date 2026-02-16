@@ -11,7 +11,7 @@ from src.schemas.chat import ChatRequest, ChatResponse
 from src.schemas.document import DocumentResponse
 from src.schemas.draft import DraftRequest, DraftResponse
 from src.schemas.search import SearchHit, SearchRequest, SearchResponse
-from src.services.container import get_chat_pipeline, get_draft_service, get_retrieval_service
+from src.services.composition.container import get_chat_pipeline, get_draft_service, get_retrieval_service
 
 router = APIRouter(tags=["rag"])
 

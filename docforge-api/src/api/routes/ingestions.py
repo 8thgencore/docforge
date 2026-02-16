@@ -22,7 +22,7 @@ from src.models.entities import (
     SourceType,
 )
 from src.schemas.ingestion import IngestionCreatedResponse, IngestionStatusResponse
-from src.services.storage import extract_zip, save_upload
+from src.services.infrastructure.document_io.storage import extract_zip, save_upload
 from src.tasks.ingest_tasks import ingest_documents_task
 from src.utils.hashing import sha256_file
 

@@ -3,8 +3,8 @@ import uuid
 import pytest
 
 from src.schemas.chat import Citation
-from src.services.langgraph_chat import ChatPipeline, build_citations
-from src.services.retrieval import RetrievedChunk
+from src.services.application.chat_pipeline import ChatPipeline, build_citations
+from src.services.application.retrieval import RetrievedChunk
 
 
 class FakeRetrievalLow:

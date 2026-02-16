@@ -12,7 +12,7 @@ from src.schemas.group import (
     GroupResponse,
     GroupUpdateRequest,
 )
-from src.services.container import get_qdrant_service
+from src.services.composition.container import get_qdrant_service
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
