@@ -10,9 +10,9 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.entities import Document, DocumentChunk
-from src.services.domain.llm_protocols import TextEmbedder
-from src.services.infrastructure.vector_store.qdrant_service import QdrantService
+from src.application.ports.llm import TextEmbedder
+from src.infrastructure.persistence.models.entities import Document, DocumentChunk
+from src.infrastructure.vector_store.qdrant_service import QdrantService
 from src.utils.lexical import lexical_score
 
 logger = logging.getLogger(__name__)

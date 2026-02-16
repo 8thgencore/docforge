@@ -10,9 +10,11 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Upload
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.schemas.ingestion import IngestionCreatedResponse, IngestionStatusResponse
 from src.core.config import get_settings
-from src.db.session import get_session
-from src.models.entities import (
+from src.infrastructure.document_io.storage import extract_zip, save_upload
+from src.infrastructure.persistence.db.session import get_session
+from src.infrastructure.persistence.models.entities import (
     Document,
     DocumentGroup,
     DocumentStatus,
@@ -21,8 +23,6 @@ from src.models.entities import (
     IngestionStatus,
     SourceType,
 )
-from src.schemas.ingestion import IngestionCreatedResponse, IngestionStatusResponse
-from src.services.infrastructure.document_io.storage import extract_zip, save_upload
 from src.tasks.ingest_tasks import ingest_documents_task
 from src.utils.hashing import sha256_file
 

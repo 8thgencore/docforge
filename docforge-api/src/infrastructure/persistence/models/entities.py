@@ -6,7 +6,7 @@ from sqlalchemy import JSON, DateTime, Enum, Float, ForeignKey, Integer, String,
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.db.base import Base
+from src.infrastructure.persistence.db.base import Base
 
 
 class SourceType(enum.StrEnum):

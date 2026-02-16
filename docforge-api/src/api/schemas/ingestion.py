@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from src.models.entities import IngestionStatus
+from src.infrastructure.persistence.models.entities import IngestionStatus
 
 
 class IngestionCreatedResponse(BaseModel):

@@ -4,14 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.schemas.chat import ChatRequest, ChatResponse
+from src.api.schemas.document import DocumentResponse
+from src.api.schemas.draft import DraftRequest, DraftResponse
+from src.api.schemas.search import SearchHit, SearchRequest, SearchResponse
+from src.bootstrap.container import get_chat_pipeline, get_draft_service, get_retrieval_service
 from src.core.config import get_settings
-from src.db.session import get_session
-from src.models.entities import Document
-from src.schemas.chat import ChatRequest, ChatResponse
-from src.schemas.document import DocumentResponse
-from src.schemas.draft import DraftRequest, DraftResponse
-from src.schemas.search import SearchHit, SearchRequest, SearchResponse
-from src.services.composition.container import get_chat_pipeline, get_draft_service, get_retrieval_service
+from src.infrastructure.persistence.db.session import get_session
+from src.infrastructure.persistence.models.entities import Document
 
 router = APIRouter(tags=["rag"])
 

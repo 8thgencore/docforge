@@ -1,4 +1,4 @@
-from src.models.entities import (
+from src.infrastructure.persistence.models.entities import (
     Document,
     DocumentChunk,
     DocumentGroup,

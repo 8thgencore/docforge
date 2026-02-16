@@ -4,15 +4,15 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.session import get_session
-from src.models.entities import Document, DocumentGroup
-from src.schemas.group import (
+from src.api.schemas.group import (
     GroupCreateRequest,
     GroupDocumentsClearResponse,
     GroupResponse,
     GroupUpdateRequest,
 )
-from src.services.composition.container import get_qdrant_service
+from src.bootstrap.container import get_qdrant_service
+from src.infrastructure.persistence.db.session import get_session
+from src.infrastructure.persistence.models.entities import Document, DocumentGroup
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 

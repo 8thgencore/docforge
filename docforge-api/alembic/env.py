@@ -4,8 +4,8 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from src.core.config import get_settings
-from src.db.base import Base
-from src.models import entities  # noqa: F401
+from src.infrastructure.persistence.db.base import Base
+from src.infrastructure.persistence.models import entities  # noqa: F401
 
 config = context.config
 

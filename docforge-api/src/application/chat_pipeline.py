@@ -6,9 +6,9 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas.chat import Citation
-from src.services.application.retrieval import RetrievalService
-from src.services.domain.llm_protocols import TextGenerator
+from src.api.schemas.chat import Citation
+from src.application.ports.llm import TextGenerator
+from src.application.retrieval import RetrievalService
 
 
 class ChatState(TypedDict, total=False):

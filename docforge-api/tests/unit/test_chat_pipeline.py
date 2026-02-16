@@ -2,9 +2,9 @@ import uuid
 
 import pytest
 
-from src.schemas.chat import Citation
-from src.services.application.chat_pipeline import ChatPipeline, build_citations
-from src.services.application.retrieval import RetrievedChunk
+from src.api.schemas.chat import Citation
+from src.application.chat_pipeline import ChatPipeline, build_citations
+from src.application.retrieval import RetrievedChunk
 
 
 class FakeRetrievalLow:

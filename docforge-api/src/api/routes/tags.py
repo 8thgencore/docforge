@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.session import get_session
-from src.models.entities import Document, DocumentTag
-from src.schemas.tag import TagCreateRequest, TagResponse, TagUpdateRequest
+from src.api.schemas.tag import TagCreateRequest, TagResponse, TagUpdateRequest
+from src.infrastructure.persistence.db.session import get_session
+from src.infrastructure.persistence.models.entities import Document, DocumentTag
 
 router = APIRouter(prefix="/tags", tags=["tags"])
 

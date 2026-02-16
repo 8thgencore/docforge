@@ -1,6 +1,6 @@
-"""Service composition and dependency wiring."""
+"""Dependency wiring and object factories."""
 
-from src.services.composition.container import (
+from src.bootstrap.container import (
     get_chat_pipeline,
     get_draft_service,
     get_ollama_client,

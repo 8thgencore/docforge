@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import AliasChoices, BaseModel, Field
 
-from src.schemas.chat import Citation
+from src.api.schemas.chat import Citation
 
 
 class DraftRequest(BaseModel):

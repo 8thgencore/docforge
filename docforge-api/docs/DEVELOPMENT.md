@@ -1,10 +1,12 @@
 # Разработка
 
 ## Структура проекта
-- `src/docforge/api/` — роуты FastAPI и зависимости
-- `src/docforge/services/` — бизнес-логика (retrieval, parsing, storage, LLM)
-- `src/docforge/tasks/` — Taskiq broker/worker и ingestion-задачи
-- `src/docforge/models/`, `src/docforge/schemas/`, `src/docforge/db/` — модели, схемы, доступ к БД
+- `src/api/` — роуты FastAPI, зависимости и API-схемы
+- `src/application/` — use-case логика и orchestration
+- `src/domain/` — доменные протоколы/контракты
+- `src/infrastructure/` — адаптеры (LLM, парсинг, vector store, persistence)
+- `src/bootstrap/` — контейнер зависимостей и wiring
+- `src/tasks/` — Taskiq broker/worker и ingestion-задачи
 - `alembic/` — миграции
 - `tests/unit/` — unit-тесты
 
@@ -43,6 +45,6 @@ uv run alembic downgrade -1
 ```
 
 ## Практика изменений
-- Держите роуты тонкими; переносите логику в `services/`.
+- Держите роуты тонкими; переносите логику в `application/` и `infrastructure/`.
 - Для изменения схемы БД всегда добавляйте миграцию.
 - На каждый bugfix или изменение поведения добавляйте/обновляйте тест.
