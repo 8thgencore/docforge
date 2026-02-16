@@ -6,7 +6,7 @@ import uuid
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -187,4 +187,37 @@ async def get_ingestion_status(
     job = await session.get(IngestionJob, ingestion_id)
     if job is None:
         raise HTTPException(status_code=404, detail="ingestion not found")
+    return IngestionStatusResponse.model_validate(job)
+
+
+@router.get("/ingestions", response_model=list[IngestionStatusResponse])
+async def list_ingestions(
+    group_id: UUID | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    session: AsyncSession = Depends(get_session),
+) -> list[IngestionStatusResponse]:
+    query = select(IngestionJob).order_by(IngestionJob.created_at.desc()).limit(limit)
+    if group_id is not None:
+        query = query.where(IngestionJob.group_id == group_id)
+    jobs = (await session.scalars(query)).all()
+    return [IngestionStatusResponse.model_validate(job) for job in jobs]
+
+
+@router.post("/ingestions/{ingestion_id}/pause", response_model=IngestionStatusResponse)
+async def pause_ingestion(
+    ingestion_id: UUID,
+    session: AsyncSession = Depends(get_session),
+) -> IngestionStatusResponse:
+    job = await session.get(IngestionJob, ingestion_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="ingestion not found")
+
+    active_statuses = {IngestionStatus.queued, IngestionStatus.running, IngestionStatus.retrying}
+    if job.status not in active_statuses:
+        raise HTTPException(status_code=409, detail="ingestion is not active")
+
+    job.status = IngestionStatus.paused
+    job.stage = "paused"
+    await session.commit()
+    await session.refresh(job)
     return IngestionStatusResponse.model_validate(job)

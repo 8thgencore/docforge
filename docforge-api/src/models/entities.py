@@ -24,6 +24,7 @@ class IngestionStatus(enum.StrEnum):
     queued = "queued"
     running = "running"
     retrying = "retrying"
+    paused = "paused"
     failed = "failed"
     completed = "completed"
 

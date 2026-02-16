@@ -195,7 +195,6 @@ export const GroupsPage = () => {
                   <Badge>{new Date(group.created_at).toLocaleDateString()}</Badge>
                 </div>
                 <p className="text-muted-foreground text-sm">{group.description || t("groups.noDescription")}</p>
-                <p className="text-muted-foreground mt-2 truncate text-xs">{group.id}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button type="button" variant="outline" size="sm" onClick={() => openEditor(group)}>
                     {t("groups.editAction")}

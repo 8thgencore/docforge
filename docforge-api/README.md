@@ -21,6 +21,15 @@ uv run docforge-worker
 
 По умолчанию API защищён заголовком `X-API-Key` (значение из `API_KEY` в `.env`).
 
+## LLM-провайдеры
+Можно использовать:
+- `OLLAMA` (по умолчанию): `LLM_PROVIDER=ollama`
+- `ChatGPT/OpenAI`: `LLM_PROVIDER=openai` и `OPENAI_API_KEY=<key>`
+
+Для OpenAI можно переопределить:
+- `OPENAI_CHAT_MODEL` (по умолчанию `gpt-4o-mini`)
+- `OPENAI_EMBED_MODEL` (по умолчанию `text-embedding-3-small`)
+
 ## Документация
 - Развертывание: `docs/DEPLOYMENT.md`
 - Разработка: `docs/DEVELOPMENT.md`

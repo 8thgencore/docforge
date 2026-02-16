@@ -6,14 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.schemas.chat import Citation
 from src.schemas.draft import DraftResponse
-from src.services.ollama import OllamaClient
+from src.services.llm_protocols import TextGenerator
 from src.services.retrieval import RetrievalService
 
 
 @dataclass(slots=True)
 class DraftService:
     retrieval: RetrievalService
-    ollama: OllamaClient
+    generator: TextGenerator
 
     async def generate_draft(
         self,
@@ -62,7 +62,7 @@ class DraftService:
             "Верни текст с заголовком и разделами."
         )
 
-        generated = await self.ollama.generate(
+        generated = await self.generator.generate(
             prompt=prompt_text,
             system="Ты помощник по подготовке деловых документов.",
         )

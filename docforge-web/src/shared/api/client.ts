@@ -111,6 +111,14 @@ export const api = {
   getIngestionStatus: (config: ApiConfig, ingestionId: string) =>
     request<IngestionStatusResponse>(config, `/ingestions/${ingestionId}`),
 
+  listIngestions: (config: ApiConfig, groupId?: string) =>
+    request<IngestionStatusResponse[]>(config, "/ingestions", {
+      params: groupId ? { group_id: groupId, limit: 50 } : { limit: 50 },
+    }),
+
+  pauseIngestion: (config: ApiConfig, ingestionId: string) =>
+    request<IngestionStatusResponse>(config, `/ingestions/${ingestionId}/pause`, { method: "POST" }),
+
   search: (config: ApiConfig, payload: SearchRequest) =>
     request<SearchResponse>(config, "/search", {
       method: "POST",

@@ -42,7 +42,7 @@ export interface IngestionCreatedResponse {
   status: IngestionStatus;
 }
 
-export type IngestionStatus = "queued" | "running" | "retrying" | "failed" | "completed";
+export type IngestionStatus = "queued" | "running" | "retrying" | "paused" | "failed" | "completed";
 
 export interface IngestionStatusResponse {
   id: UUID;

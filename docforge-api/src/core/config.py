@@ -90,6 +90,20 @@ class OllamaSettings(BaseSettings):
     embed_model: str = "bge-m3"
 
 
+class OpenAISettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_prefix="OPENAI_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    api_key: str | None = None
+    base_url: str = "https://api.openai.com/v1"
+    chat_model: str = "gpt-4o-mini"
+    embed_model: str = "text-embedding-3-small"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -104,6 +118,9 @@ class Settings(BaseSettings):
     qdrant: QdrantSettings = Field(default_factory=QdrantSettings)
     storage: StorageSettings = Field(default_factory=StorageSettings)
     ollama: OllamaSettings = Field(default_factory=OllamaSettings)
+    openai: OpenAISettings = Field(default_factory=OpenAISettings)
+
+    llm_provider: str = "ollama"
 
     max_chunk_chars: int = 1200
     chunk_overlap: int = 200
@@ -157,6 +174,22 @@ class Settings(BaseSettings):
     @property
     def ollama_embed_model(self) -> str:
         return self.ollama.embed_model
+
+    @property
+    def openai_api_key(self) -> str | None:
+        return self.openai.api_key
+
+    @property
+    def openai_base_url(self) -> str:
+        return self.openai.base_url
+
+    @property
+    def openai_chat_model(self) -> str:
+        return self.openai.chat_model
+
+    @property
+    def openai_embed_model(self) -> str:
+        return self.openai.embed_model
 
     @property
     def cors_origins(self) -> list[str]:

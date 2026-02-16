@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+import logging
 import uuid
 from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.entities import Document, DocumentChunk
-from src.services.ollama import OllamaClient
+from src.services.llm_protocols import TextEmbedder
 from src.services.qdrant import QdrantService
 from src.utils.lexical import lexical_score
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -25,9 +29,9 @@ class RetrievedChunk:
 
 
 class RetrievalService:
-    def __init__(self, qdrant: QdrantService, ollama: OllamaClient) -> None:
+    def __init__(self, qdrant: QdrantService, embedder: TextEmbedder) -> None:
         self._qdrant = qdrant
-        self._ollama = ollama
+        self._embedder = embedder
 
     async def retrieve(
         self,
@@ -37,30 +41,37 @@ class RetrievalService:
         tag: str | None,
         top_k: int,
     ) -> list[RetrievedChunk]:
-        query_vector = (await self._ollama.embed_texts([query]))[0]
-        vector_hits = await self._qdrant.search(
-            query_vector=query_vector,
-            group_id=group_id,
-            tag=tag,
-            limit=max(top_k * 2, 12),
-        )
-
         merged: dict[UUID, RetrievedChunk] = {}
 
-        for hit in vector_hits:
-            payload = hit.payload or {}
-            chunk_id = _parse_uuid(payload.get("chunk_id"))
-            document_id = _parse_uuid(payload.get("document_id"))
-            if chunk_id is None or document_id is None:
-                continue
-            merged[chunk_id] = RetrievedChunk(
-                chunk_id=chunk_id,
-                document_id=document_id,
-                filename=str(payload.get("filename", "unknown")),
-                tag=payload.get("tag"),
-                text=str(payload.get("text", "")),
-                score=float(hit.score) * 0.7,
+        try:
+            query_vector = (await self._embedder.embed_texts([query]))[0]
+            vector_hits = await self._qdrant.search(
+                query_vector=query_vector,
+                group_id=group_id,
+                tag=tag,
+                limit=max(top_k * 2, 12),
             )
+            for hit in vector_hits:
+                payload = hit.payload or {}
+                chunk_id = _parse_uuid(payload.get("chunk_id"))
+                document_id = _parse_uuid(payload.get("document_id"))
+                if chunk_id is None or document_id is None:
+                    continue
+                merged[chunk_id] = RetrievedChunk(
+                    chunk_id=chunk_id,
+                    document_id=document_id,
+                    filename=str(payload.get("filename", "unknown")),
+                    tag=payload.get("tag"),
+                    text=str(payload.get("text", "")),
+                    score=float(hit.score) * 0.7,
+                )
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 429:
+                logger.warning("rate limited by embedding provider, fallback to lexical retrieval only")
+            else:
+                raise
+        except Exception:
+            logger.exception("vector retrieval unavailable, fallback to lexical retrieval only")
 
         lexical_candidates = await self._load_lexical_candidates(
             session=session,

@@ -64,6 +64,12 @@ export const messages: Record<Language, Record<string, string>> = {
 
     "ingestion.uploadTitle": "Upload Documents",
     "ingestion.statusTitle": "Ingestion Status",
+    "ingestion.currentListTitle": "Current Ingestions",
+    "ingestion.recentListTitle": "Recent Ingestions",
+    "ingestion.listTitle": "Recent Ingestions",
+    "ingestion.noRecent": "No recent ingestions.",
+    "ingestion.emptyList": "No ingestions yet.",
+    "ingestion.id": "Ingestion ID",
     "ingestion.groupId": "Group ID",
     "tags.labelOptional": "Tag (optional)",
     "ingestion.mode": "Upload mode",
@@ -78,6 +84,8 @@ export const messages: Record<Language, Record<string, string>> = {
     "ingestion.selectFilesError": "Select at least one file.",
     "ingestion.selectZipError": "Select a zip archive.",
     "ingestion.started": "Ingestion started",
+    "ingestion.pause": "Pause",
+    "ingestion.paused": "Ingestion paused",
 
     "search.title": "Semantic Search",
     "search.query": "Query",
@@ -184,6 +192,12 @@ export const messages: Record<Language, Record<string, string>> = {
 
     "ingestion.uploadTitle": "Загрузка документов",
     "ingestion.statusTitle": "Статус индексации",
+    "ingestion.currentListTitle": "Текущие индексации",
+    "ingestion.recentListTitle": "Последние индексации",
+    "ingestion.listTitle": "Последние индексации",
+    "ingestion.noRecent": "Пока нет завершённых индексаций.",
+    "ingestion.emptyList": "Индексаций пока нет.",
+    "ingestion.id": "Ingestion ID",
     "ingestion.groupId": "ID группы",
     "tags.labelOptional": "Тег (опционально)",
     "ingestion.mode": "Режим загрузки",
@@ -198,6 +212,8 @@ export const messages: Record<Language, Record<string, string>> = {
     "ingestion.selectFilesError": "Выберите хотя бы один файл.",
     "ingestion.selectZipError": "Выберите ZIP-архив.",
     "ingestion.started": "Индексация запущена",
+    "ingestion.pause": "Приостановить",
+    "ingestion.paused": "Индексация приостановлена",
 
     "search.title": "Семантический поиск",
     "search.query": "Запрос",

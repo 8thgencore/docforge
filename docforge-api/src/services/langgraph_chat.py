@@ -7,7 +7,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.schemas.chat import Citation
-from src.services.ollama import OllamaClient
+from src.services.llm_protocols import TextGenerator
 from src.services.retrieval import RetrievalService
 
 
@@ -25,7 +25,7 @@ class ChatState(TypedDict, total=False):
 @dataclass(slots=True)
 class ChatPipeline:
     retrieval: RetrievalService
-    ollama: OllamaClient
+    generator: TextGenerator
     low_confidence_threshold: float
 
     async def run(
@@ -82,7 +82,7 @@ class ChatPipeline:
                 f"Вопрос: {state['query']}\n\n"
                 f"Контекст:\n{'\n\n'.join(context_blocks)}"
             )
-            answer = await self.ollama.generate(
+            answer = await self.generator.generate(
                 prompt=prompt,
                 system="Ты RAG-ассистент, давай точные ответы по источникам.",
             )
@@ -142,7 +142,7 @@ class ChatPipeline:
             )
 
         context = "\n\n".join([f"[{item.chunk_id}] {item.text}" for item in retrieved])
-        answer = await self.ollama.generate(
+        answer = await self.generator.generate(
             prompt=(f"Ответь на вопрос пользователя строго по контексту.\nВопрос: {query}\n\nКонтекст:\n{context}"),
             system="Ты RAG-ассистент, опирающийся на источники.",
         )

@@ -14,7 +14,7 @@ from src.models.entities import (
     IngestionJob,
     IngestionStatus,
 )
-from src.services.container import get_ollama_client, get_qdrant_service
+from src.services.container import get_qdrant_service, get_text_embedder
 from src.services.parser import parse_document
 from src.tasks.broker import broker
 from src.utils.chunking import iter_chunks
@@ -32,18 +32,25 @@ async def ingest_documents_task(job_id: str, document_ids: list[str]) -> dict:
             logger.error("ingestion job %s not found", job_id)
             return {"ok": False, "reason": "job_not_found"}
 
-        job.status = IngestionStatus.running
-        job.stage = "parsing"
-        job.progress = 0.05
-        job.error = None
-        await session.commit()
-
-        ollama = get_ollama_client()
-        qdrant = get_qdrant_service()
-        ingested = 0
+        if job.status != IngestionStatus.paused:
+            job.status = IngestionStatus.running
+            job.stage = "parsing"
+            job.progress = 0.05
+            job.error = None
+            await session.commit()
 
         try:
+            embedder = get_text_embedder()
+            qdrant = get_qdrant_service()
+            ingested = 0
+
             for index, raw_document_id in enumerate(document_ids):
+                await session.refresh(job)
+                if job.status == IngestionStatus.paused:
+                    job.stage = "paused"
+                    await session.commit()
+                    return {"ok": True, "paused": True, "ingested_documents": ingested}
+
                 document = await session.get(Document, uuid.UUID(raw_document_id))
                 if document is None:
                     continue
@@ -56,7 +63,7 @@ async def ingest_documents_task(job_id: str, document_ids: list[str]) -> dict:
                     document.status = DocumentStatus.failed
                     continue
 
-                vectors = await ollama.embed_texts(chunks)
+                vectors = await embedder.embed_texts(chunks)
                 point_ids: list[str] = []
                 payloads: list[dict] = []
 
@@ -96,6 +103,12 @@ async def ingest_documents_task(job_id: str, document_ids: list[str]) -> dict:
                 job.progress = min(0.95, (index + 1) / max(1, len(document_ids)))
                 job.stage = "indexing"
                 await session.commit()
+
+            await session.refresh(job)
+            if job.status == IngestionStatus.paused:
+                job.stage = "paused"
+                await session.commit()
+                return {"ok": True, "paused": True, "ingested_documents": ingested}
 
             job.status = IngestionStatus.completed
             job.stage = "completed"
