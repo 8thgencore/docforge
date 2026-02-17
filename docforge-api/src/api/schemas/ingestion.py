@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from src.infrastructure.persistence.models.entities import IngestionStatus
+from src.infrastructure.persistence.models.entities import IngestionStage, IngestionStatus
 
 
 class IngestionCreatedResponse(BaseModel):
@@ -19,7 +19,7 @@ class IngestionStatusResponse(BaseModel):
     task_id: str | None
     group_id: UUID
     status: IngestionStatus
-    stage: str
+    stage: IngestionStage
     progress: float
     error: str | None
     stats: dict | None

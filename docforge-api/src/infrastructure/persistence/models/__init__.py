@@ -5,6 +5,7 @@ from src.infrastructure.persistence.models.entities import (
     DocumentStatus,
     DocumentTag,
     IngestionJob,
+    IngestionStage,
     IngestionStatus,
     SourceType,
 )
@@ -16,6 +17,7 @@ __all__ = [
     "DocumentTag",
     "DocumentStatus",
     "IngestionJob",
+    "IngestionStage",
     "IngestionStatus",
     "SourceType",
 ]

@@ -20,6 +20,7 @@ from src.infrastructure.persistence.models.entities import (
     DocumentStatus,
     DocumentTag,
     IngestionJob,
+    IngestionStage,
     IngestionStatus,
     SourceType,
 )
@@ -69,7 +70,7 @@ async def upload_documents(
     base_upload_dir = settings.upload_path / str(group_id)
     base_upload_dir.mkdir(parents=True, exist_ok=True)
 
-    job = IngestionJob(group_id=group_id, status=IngestionStatus.queued, stage="queued", progress=0.0)
+    job = IngestionJob(group_id=group_id, status=IngestionStatus.queued, stage=IngestionStage.queued, progress=0.0)
     session.add(job)
     await session.flush()
 
@@ -109,7 +110,7 @@ async def upload_documents(
         job.task_id = task_id
     else:
         job.status = IngestionStatus.completed
-        job.stage = "completed"
+        job.stage = IngestionStage.completed
         job.progress = 1.0
         job.stats = {"ingested_documents": 0, "duplicates": duplicates}
 
@@ -136,7 +137,7 @@ async def upload_zip(
     extracted_dir = settings.storage_path / str(group_id) / f"zip-{uuid.uuid4()}"
     extracted_files = extract_zip(archive_path=archive_path, destination_dir=extracted_dir)
 
-    job = IngestionJob(group_id=group_id, status=IngestionStatus.queued, stage="queued", progress=0.0)
+    job = IngestionJob(group_id=group_id, status=IngestionStatus.queued, stage=IngestionStage.queued, progress=0.0)
     session.add(job)
     await session.flush()
 
@@ -171,7 +172,7 @@ async def upload_zip(
         job.task_id = task_id
     else:
         job.status = IngestionStatus.completed
-        job.stage = "completed"
+        job.stage = IngestionStage.completed
         job.progress = 1.0
         job.stats = {"ingested_documents": 0, "duplicates": duplicates}
 
@@ -217,7 +218,7 @@ async def pause_ingestion(
         raise HTTPException(status_code=409, detail="ingestion is not active")
 
     job.status = IngestionStatus.paused
-    job.stage = "paused"
+    job.stage = IngestionStage.paused
     await session.commit()
     await session.refresh(job)
     return IngestionStatusResponse.model_validate(job)

@@ -29,6 +29,15 @@ class IngestionStatus(enum.StrEnum):
     completed = "completed"
 
 
+class IngestionStage(enum.StrEnum):
+    queued = "queued"
+    parsing = "parsing"
+    indexing = "indexing"
+    paused = "paused"
+    failed = "failed"
+    completed = "completed"
+
+
 class DocumentGroup(Base):
     __tablename__ = "document_groups"
 
@@ -83,7 +92,7 @@ class IngestionJob(Base):
         index=True,
     )
     status: Mapped[IngestionStatus] = mapped_column(Enum(IngestionStatus), default=IngestionStatus.queued)
-    stage: Mapped[str] = mapped_column(String(128), default="queued")
+    stage: Mapped[IngestionStage] = mapped_column(Enum(IngestionStage), default=IngestionStage.queued)
     progress: Mapped[float] = mapped_column(Float, default=0.0)
     error: Mapped[str | None] = mapped_column(Text(), nullable=True)
     stats: Mapped[dict | None] = mapped_column(JSON, nullable=True)
