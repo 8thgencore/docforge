@@ -58,11 +58,7 @@ def _build_chunk_payload(document: Document, point_id: str, chunk_text: str) -> 
     }
 
 
-async def _embed_chunks(
-    *,
-    embedder: TextEmbedder,
-    chunks: list[str],
-) -> list[list[float]]:
+async def _embed_chunks(embedder: TextEmbedder, chunks: list[str]) -> list[list[float]]:
     vectors: list[list[float]] = []
     for start in range(0, len(chunks), EMBED_BATCH_SIZE):
         batch = chunks[start : start + EMBED_BATCH_SIZE]
@@ -103,12 +99,7 @@ async def _index_document_chunks(
     await qdrant.upsert_chunks(point_ids=point_ids, vectors=vectors, payloads=payloads)
 
 
-async def _process_document(
-    *,
-    session: AsyncSession,
-    document: Document,
-    embedder: TextEmbedder,
-) -> bool:
+async def _process_document(session: AsyncSession, document: Document, embedder: TextEmbedder) -> bool:
     parsed = await asyncio.to_thread(parse_document, Path(document.source_uri))
     chunks = [chunk for _, chunk in iter_chunks(parsed.text, settings.max_chunk_chars, settings.chunk_overlap)]
     if not chunks:
@@ -135,10 +126,7 @@ async def _process_document(
     return True
 
 
-
-
-
-async def _run_ingestion(*, session: AsyncSession, job: IngestionJob, document_ids: list[str]) -> dict:
+async def _run_ingestion(session: AsyncSession, job: IngestionJob, document_ids: list[str]) -> dict:
     embedder = get_text_embedder()
     ingested = 0
     total_documents = len(document_ids)

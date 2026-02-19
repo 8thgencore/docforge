@@ -6,10 +6,11 @@ UV_SYNC = UV_CACHE_DIR=$(UV_CACHE_DIR) $(UV) sync
 STACK_LOCAL ?= docforge-local
 STACK_DEV ?= docforge-dev
 STACK_PROD ?= docforge-prod
+ENV_FILE ?= .env
 
-COMPOSE_LOCAL = docker compose -p $(STACK_LOCAL) -f deployments/docker-compose.local.yml
-COMPOSE_DEV = docker compose -p $(STACK_DEV) -f deployments/docker-compose.dev.yml
-COMPOSE_PROD = docker compose -p $(STACK_PROD) -f deployments/docker-compose.prod.yml
+COMPOSE_LOCAL = docker compose --env-file $(ENV_FILE) -p $(STACK_LOCAL) -f deployments/docker-compose.local.yml
+COMPOSE_DEV = docker compose --env-file $(ENV_FILE) -p $(STACK_DEV) -f deployments/docker-compose.dev.yml
+COMPOSE_PROD = docker compose --env-file $(ENV_FILE) -p $(STACK_PROD) -f deployments/docker-compose.prod.yml
 
 .PHONY: help sync migrate run-api run-worker test lint docker-local-up docker-local-down docker-local-logs docker-dev-up docker-dev-down docker-prod-up docker-prod-down
 
