@@ -104,6 +104,19 @@ class OpenAISettings(BaseSettings):
     embed_model: str = "text-embedding-3-small"
 
 
+class LMStudioSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_prefix="LMSTUDIO_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    base_url: str = "http://localhost:1234"
+    chat_model: str = "qwen2.5:7b-instruct"
+    embed_model: str = "text-embedding-qwen3-embedding-4b"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -119,6 +132,7 @@ class Settings(BaseSettings):
     storage: StorageSettings = Field(default_factory=StorageSettings)
     ollama: OllamaSettings = Field(default_factory=OllamaSettings)
     openai: OpenAISettings = Field(default_factory=OpenAISettings)
+    lmstudio: LMStudioSettings = Field(default_factory=LMStudioSettings)
 
     llm_provider: str = "ollama"
 
@@ -190,6 +204,18 @@ class Settings(BaseSettings):
     @property
     def openai_embed_model(self) -> str:
         return self.openai.embed_model
+
+    @property
+    def lmstudio_base_url(self) -> str:
+        return self.lmstudio.base_url
+
+    @property
+    def lmstudio_chat_model(self) -> str:
+        return self.lmstudio.chat_model
+
+    @property
+    def lmstudio_embed_model(self) -> str:
+        return self.lmstudio.embed_model
 
     @property
     def cors_origins(self) -> list[str]:

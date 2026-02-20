@@ -69,9 +69,19 @@ class RetrievalService:
             if exc.response.status_code == 429:
                 logger.warning("rate limited by embedding provider, fallback to lexical retrieval only")
             else:
-                raise
+                logger.warning(
+                    "embedding provider returned HTTP %s, fallback to lexical retrieval only",
+                    exc.response.status_code,
+                )
+        except httpx.RequestError as exc:
+            logger.warning(
+                "embedding provider request failed (%s), fallback to lexical retrieval only",
+                exc.__class__.__name__,
+            )
+        except (RuntimeError, ValueError) as exc:
+            logger.warning("embedding provider response invalid (%s), fallback to lexical retrieval only", exc)
         except Exception:
-            logger.exception("vector retrieval unavailable, fallback to lexical retrieval only")
+            logger.exception("unexpected vector retrieval failure, fallback to lexical retrieval only")
 
         lexical_candidates = await self._load_lexical_candidates(
             session=session,

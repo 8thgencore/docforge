@@ -24,7 +24,13 @@ uv run docforge-worker
 ## LLM-провайдеры
 Можно использовать:
 - `OLLAMA` (по умолчанию): `LLM_PROVIDER=ollama`
+- `LM Studio`: `LLM_PROVIDER=lmstudio`
 - `ChatGPT/OpenAI`: `LLM_PROVIDER=openai` и `OPENAI_API_KEY=<key>`
+
+Для LM Studio можно переопределить:
+- `LMSTUDIO_BASE_URL` (по умолчанию `http://localhost:1234`)
+- `LMSTUDIO_CHAT_MODEL`
+- `LMSTUDIO_EMBED_MODEL`
 
 Для OpenAI можно переопределить:
 - `OPENAI_CHAT_MODEL` (по умолчанию `gpt-4o-mini`)

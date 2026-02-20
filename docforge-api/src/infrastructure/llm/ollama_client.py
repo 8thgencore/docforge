@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Any
 
 import httpx
 
@@ -27,6 +28,32 @@ class OllamaClient:
                     raise RuntimeError("Ollama embeddings response missing vector")
                 embeddings.append([float(v) for v in vector])
         return embeddings
+
+    async def check_connection(self) -> dict[str, Any]:
+        async with httpx.AsyncClient(timeout=self._timeout) as client:
+            response = await client.get(f"{self._base_url}/api/tags")
+            response.raise_for_status()
+            payload = response.json()
+            models = payload.get("models")
+            if not isinstance(models, list):
+                raise RuntimeError("Ollama tags response missing models list")
+
+            model_names = {
+                str(item.get("name"))
+                for item in models
+                if isinstance(item, dict) and isinstance(item.get("name"), str)
+            }
+            exact_match = self._embed_model in model_names
+            with_latest_match = f"{self._embed_model}:latest" in model_names
+            embed_model_available = exact_match or with_latest_match
+
+            return {
+                "provider": "ollama",
+                "base_url": self._base_url,
+                "embed_model": self._embed_model,
+                "embed_model_available": embed_model_available,
+                "available_models": sorted(model_names),
+            }
 
     async def generate(self, prompt: str, system: str | None = None) -> str:
         final_prompt = prompt

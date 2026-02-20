@@ -1,5 +1,7 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,8 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.schemas.chat import ChatRequest, ChatResponse
 from src.api.schemas.document import DocumentResponse
 from src.api.schemas.draft import DraftRequest, DraftResponse
+from src.api.schemas.health import EmbeddingHealthResponse
 from src.api.schemas.search import SearchHit, SearchRequest, SearchResponse
-from src.bootstrap.container import get_chat_pipeline, get_draft_service, get_retrieval_service
+from src.bootstrap.container import get_chat_pipeline, get_draft_service, get_retrieval_service, get_text_embedder
 from src.core.config import get_settings
 from src.infrastructure.persistence.db.session import get_session
 from src.infrastructure.persistence.models.entities import Document
@@ -89,3 +92,38 @@ async def get_document(document_id: UUID, session: AsyncSession = Depends(get_se
 async def health(session: AsyncSession = Depends(get_session)) -> dict:
     await session.execute(text("SELECT 1"))
     return {"status": "ok"}
+
+
+@router.get("/health/embedding", response_model=EmbeddingHealthResponse)
+async def embedding_health() -> EmbeddingHealthResponse:
+    settings = get_settings()
+    embedder = get_text_embedder()
+    provider = settings.llm_provider.lower()
+    checked_at = datetime.now(UTC)
+
+    try:
+        details = await embedder.check_connection()
+        message = "Embedding provider is available"
+        if details.get("embed_model_available") is False:
+            message = "Embedding provider is reachable, but the configured embedding model is not available"
+            return EmbeddingHealthResponse(
+                status="degraded",
+                provider=provider,
+                message=message,
+                checked_at=checked_at,
+                details=details,
+            )
+        return EmbeddingHealthResponse(
+            status="ok",
+            provider=provider,
+            message=message,
+            checked_at=checked_at,
+            details=details,
+        )
+    except (httpx.RequestError, httpx.HTTPStatusError, RuntimeError, ValueError) as exc:
+        return EmbeddingHealthResponse(
+            status="degraded",
+            provider=provider,
+            message=f"Embedding provider unavailable: {exc}",
+            checked_at=checked_at,
+        )

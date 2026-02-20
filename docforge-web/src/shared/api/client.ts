@@ -6,6 +6,7 @@ import type {
   ChatRequest,
   ChatResponse,
   DocumentResponse,
+  EmbeddingHealthResponse,
   DraftRequest,
   DraftResponse,
   GroupCreateRequest,
@@ -137,4 +138,6 @@ export const api = {
   getDocument: (config: ApiConfig, documentId: string) => request<DocumentResponse>(config, `/documents/${documentId}`),
 
   health: (config: ApiConfig) => request<{ status: string }>(config, "/health"),
+
+  healthEmbedding: (config: ApiConfig) => request<EmbeddingHealthResponse>(config, "/health/embedding"),
 };

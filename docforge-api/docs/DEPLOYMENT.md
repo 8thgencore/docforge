@@ -14,6 +14,8 @@ cp .env.example .env
 - `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 - `REDIS_PASSWORD`
 - `OLLAMA_*` (если используете Ollama)
+- `LMSTUDIO_*` (если используете LM Studio)
+- `OPENAI_*` (если используете OpenAI)
 
 Приложение само собирает URL из `DB_*`, `REDIS_*`, `QDRANT_*`.
 

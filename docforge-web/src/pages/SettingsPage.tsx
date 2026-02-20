@@ -1,11 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select } from "@/components/ui";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Select } from "@/components/ui";
 import { useSettings } from "@/features/settings/settings-context";
+import { api } from "@/shared/api/client";
+import { toApiError } from "@/shared/api/errors";
+import type { EmbeddingHealthResponse } from "@/shared/api/types";
 import { storageKeys } from "@/shared/config/storage";
 import { useI18n } from "@/shared/i18n/use-i18n";
 
@@ -22,6 +27,8 @@ export const SettingsPage = () => {
   const { baseUrl, apiKey, language, setApiKey, setBaseUrl, setLanguage } = useSettings();
   const { theme, setTheme } = useTheme();
   const { t } = useI18n();
+  const [embeddingHealth, setEmbeddingHealth] = useState<EmbeddingHealthResponse | null>(null);
+  const [embeddingError, setEmbeddingError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -40,6 +47,29 @@ export const SettingsPage = () => {
     setTheme(values.theme);
     window.localStorage.setItem(storageKeys.theme, values.theme);
     toast.success(t("settings.saved"));
+  });
+
+  const checkEmbeddingMutation = useMutation({
+    mutationFn: async () => {
+      const values = form.getValues();
+      return api.healthEmbedding({
+        baseUrl: values.baseUrl,
+        apiKey: values.apiKey,
+      });
+    },
+    onSuccess: (data) => {
+      setEmbeddingHealth(data);
+      setEmbeddingError(null);
+      if (data.status === "ok") {
+        toast.success(t("settings.connectionOk"));
+        return;
+      }
+      toast.warning(data.message);
+    },
+    onError: (error) => {
+      setEmbeddingHealth(null);
+      setEmbeddingError(toApiError(error).message);
+    },
   });
 
   return (
@@ -86,6 +116,32 @@ export const SettingsPage = () => {
 
           <div>
             <Button type="submit">{t("settings.save")}</Button>
+          </div>
+
+          <div className="border-border grid gap-2 rounded-md border p-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium">{t("settings.embeddingConnection")}</p>
+              <Badge>
+                {checkEmbeddingMutation.isPending
+                  ? t("settings.checking")
+                  : embeddingError
+                    ? t("settings.statusError")
+                    : embeddingHealth?.status === "ok"
+                      ? t("settings.statusOk")
+                      : embeddingHealth?.status === "degraded"
+                        ? t("settings.statusDegraded")
+                        : t("settings.statusUnknown")}
+              </Badge>
+            </div>
+
+            {embeddingHealth?.message && <p className="text-sm">{embeddingHealth.message}</p>}
+            {embeddingError && <p className="text-destructive text-sm">{embeddingError}</p>}
+
+            <div>
+              <Button type="button" onClick={() => checkEmbeddingMutation.mutate()} disabled={checkEmbeddingMutation.isPending}>
+                {checkEmbeddingMutation.isPending ? t("settings.checking") : t("settings.checkConnection")}
+              </Button>
+            </div>
           </div>
         </form>
       </CardContent>

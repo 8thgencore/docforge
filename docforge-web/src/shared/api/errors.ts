@@ -19,6 +19,14 @@ export const toApiError = (error: unknown): ApiError => {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status;
     const details = error.response?.data;
+    const detailMessage =
+      typeof details === "object" && details !== null
+        ? typeof (details as { detail?: unknown }).detail === "string"
+          ? (details as { detail: string }).detail
+          : typeof (details as { message?: unknown }).message === "string"
+            ? (details as { message: string }).message
+            : null
+        : null;
 
     if (status === 401) {
       return new ApiError("Invalid API key. Check Settings.", status, details);
@@ -30,7 +38,7 @@ export const toApiError = (error: unknown): ApiError => {
       return new ApiError("Validation failed. Check input fields.", status, details);
     }
 
-    return new ApiError(error.message || "Request failed", status, details);
+    return new ApiError(detailMessage ?? error.message ?? "Request failed", status, details);
   }
   if (error instanceof Error) {
     return new ApiError(error.message);

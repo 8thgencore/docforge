@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Sequence
+from typing import Any
 
 import httpx
 
@@ -26,6 +27,15 @@ class OpenAIClient:
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
         }
+
+    async def _get_json(self, endpoint: str) -> dict[str, Any]:
+        async with httpx.AsyncClient(timeout=self._timeout) as client:
+            response = await client.get(f"{self._base_url}{endpoint}", headers=self._headers())
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, dict):
+                raise RuntimeError("OpenAI response must be an object")
+            return payload
 
     async def _post_json(self, endpoint: str, payload: dict, max_attempts: int = 3) -> dict:
         async with httpx.AsyncClient(timeout=self._timeout) as client:
@@ -72,6 +82,15 @@ class OpenAIClient:
                 raise RuntimeError("OpenAI embeddings response item missing vector")
             vectors.append([float(v) for v in vector])
         return vectors
+
+    async def check_connection(self) -> dict[str, Any]:
+        payload = await self._get_json(f"/models/{self._embed_model}")
+        return {
+            "provider": "openai",
+            "base_url": self._base_url,
+            "embed_model": self._embed_model,
+            "model_id": payload.get("id", self._embed_model),
+        }
 
     async def generate(self, prompt: str, system: str | None = None) -> str:
         messages: list[dict[str, str]] = []

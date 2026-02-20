@@ -133,3 +133,11 @@ export interface ApiConfig {
   baseUrl: string;
   apiKey: string;
 }
+
+export interface EmbeddingHealthResponse {
+  status: "ok" | "degraded";
+  provider: string;
+  message: string;
+  checked_at: string;
+  details?: Record<string, unknown> | null;
+}

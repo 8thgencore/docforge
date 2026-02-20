@@ -1,10 +1,12 @@
 from functools import lru_cache
+from typing import Any
 
 from src.application.chat_pipeline import ChatPipeline
 from src.application.draft_service import DraftService
 from src.application.ports.llm import TextEmbedder, TextGenerator
 from src.application.retrieval import RetrievalService
 from src.core.config import get_settings
+from src.infrastructure.llm.lmstudio_client import LMStudioClient
 from src.infrastructure.llm.ollama_client import OllamaClient
 from src.infrastructure.llm.openai_client import OpenAIClient
 from src.infrastructure.vector_store.qdrant_service import QdrantService
@@ -33,25 +35,40 @@ def get_openai_client() -> OpenAIClient:
     )
 
 
+@lru_cache(maxsize=1)
+def get_lmstudio_client() -> LMStudioClient:
+    settings = get_settings()
+    return LMStudioClient(
+        base_url=settings.lmstudio_base_url,
+        chat_model=settings.lmstudio_chat_model,
+        embed_model=settings.lmstudio_embed_model,
+    )
+
+
 def _provider_name() -> str:
     provider = get_settings().llm_provider.strip().lower()
-    if provider not in {"ollama", "openai"}:
-        raise RuntimeError("LLM_PROVIDER must be either 'ollama' or 'openai'")
+    if provider not in {"ollama", "openai", "lmstudio"}:
+        raise RuntimeError("LLM_PROVIDER must be one of: 'ollama', 'openai', 'lmstudio'")
     return provider
+
+
+def _get_llm_client() -> Any:
+    provider = _provider_name()
+    if provider == "openai":
+        return get_openai_client()
+    if provider == "lmstudio":
+        return get_lmstudio_client()
+    return get_ollama_client()
 
 
 @lru_cache(maxsize=1)
 def get_text_generator() -> TextGenerator:
-    if _provider_name() == "openai":
-        return get_openai_client()
-    return get_ollama_client()
+    return _get_llm_client()
 
 
 @lru_cache(maxsize=1)
 def get_text_embedder() -> TextEmbedder:
-    if _provider_name() == "openai":
-        return get_openai_client()
-    return get_ollama_client()
+    return _get_llm_client()
 
 
 @lru_cache(maxsize=1)
