@@ -86,6 +86,7 @@ class IngestionJob(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     task_id: Mapped[str | None] = mapped_column(String(255), index=True, nullable=True)
+    filename: Mapped[str | None] = mapped_column(String(512), nullable=True)
     group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("document_groups.id", ondelete="CASCADE"),

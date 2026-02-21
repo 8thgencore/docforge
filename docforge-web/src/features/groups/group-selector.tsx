@@ -4,6 +4,7 @@ import { Input, Label } from "@/components/ui";
 import type { GroupResponse } from "@/shared/api/types";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import { useI18n } from "@/shared/i18n/use-i18n";
+import { cn } from "@/shared/lib/utils";
 
 interface GroupSelectorProps {
   groups: GroupResponse[];
@@ -17,9 +18,10 @@ export const GroupSelector = ({ groups, value, onChange, allowAll = false }: Gro
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const debouncedSearch = useDebounce(search.trim().toLowerCase(), 250);
+  const allGroupsLabel = t("groups.allGroups");
 
   const selectedGroup = useMemo(() => groups.find((group) => group.id === value), [groups, value]);
-  const inputValue = isOpen ? search : (selectedGroup?.name ?? search);
+  const inputValue = isOpen ? search : (selectedGroup?.name ?? (allowAll && !value ? allGroupsLabel : search));
 
   const filteredGroups = useMemo(() => {
     if (!debouncedSearch) {
@@ -28,17 +30,26 @@ export const GroupSelector = ({ groups, value, onChange, allowAll = false }: Gro
     return groups.filter((group) => group.name.toLowerCase().includes(debouncedSearch));
   }, [debouncedSearch, groups]);
 
+  const selectGroup = (groupId: string, groupName = "") => {
+    onChange(groupId);
+    setSearch(groupName);
+    setIsOpen(false);
+  };
+
   return (
     <div className="grid gap-2">
       <Label htmlFor="group-search">{t("groups.searchLabel")}</Label>
       <div className="relative">
         <Input
           id="group-search"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
           value={inputValue}
           onFocus={() => setIsOpen(true)}
-          onBlur={() => {
-            window.setTimeout(() => setIsOpen(false), 120);
-          }}
+          onClick={() => setIsOpen(true)}
+          onBlur={() => setIsOpen(false)}
           onChange={(event) => {
             setSearch(event.target.value);
             onChange("");
@@ -51,25 +62,26 @@ export const GroupSelector = ({ groups, value, onChange, allowAll = false }: Gro
             {allowAll && (
               <button
                 type="button"
-                className="hover:bg-muted block w-full px-3 py-2 text-left text-sm"
-                onClick={() => {
-                  onChange("");
-                  setSearch("");
-                  setIsOpen(false);
+                className={cn("hover:bg-muted block w-full px-3 py-2 text-left text-sm", !value && "bg-muted")}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  selectGroup("");
                 }}
               >
-                {t("groups.allGroups")}
+                {allGroupsLabel}
               </button>
             )}
             {filteredGroups.map((group) => (
               <button
                 key={group.id}
                 type="button"
-                className="hover:bg-muted block w-full px-3 py-2 text-left text-sm"
-                onClick={() => {
-                  onChange(group.id);
-                  setSearch(group.name);
-                  setIsOpen(false);
+                className={cn(
+                  "hover:bg-muted block w-full px-3 py-2 text-left text-sm",
+                  value === group.id && "bg-muted",
+                )}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  selectGroup(group.id, group.name);
                 }}
               >
                 {group.name}

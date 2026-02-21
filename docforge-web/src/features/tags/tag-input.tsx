@@ -33,25 +33,29 @@ export const TagInput = ({ value, onChange, label }: TagInputProps) => {
       <div className="relative">
         <Input
           id="tag-input"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
           value={value}
           onFocus={() => setIsOpen(true)}
-          onBlur={() => {
-            window.setTimeout(() => setIsOpen(false), 120);
-          }}
+          onClick={() => setIsOpen(true)}
+          onBlur={() => setIsOpen(false)}
           onChange={(event) => {
             onChange(event.target.value);
             setIsOpen(true);
           }}
           placeholder={t("tags.inputPlaceholder")}
         />
-        {isOpen && suggestions.length > 0 && (
+        {isOpen && (
           <div className="border-border bg-background absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border shadow-md">
             {suggestions.map((tag) => (
               <button
                 key={tag.id}
                 type="button"
                 className="hover:bg-muted block w-full px-3 py-2 text-left text-sm"
-                onClick={() => {
+                onMouseDown={(event) => {
+                  event.preventDefault();
                   onChange(tag.name);
                   setIsOpen(false);
                 }}
@@ -59,6 +63,7 @@ export const TagInput = ({ value, onChange, label }: TagInputProps) => {
                 {tag.name}
               </button>
             ))}
+            {!suggestions.length && <p className="text-muted-foreground px-3 py-2 text-sm">{t("tags.empty")}</p>}
           </div>
         )}
       </div>

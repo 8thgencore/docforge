@@ -57,6 +57,15 @@ async def _ensure_tag(session: AsyncSession, raw_tag: str | None) -> str | None:
     return normalized_tag
 
 
+def _build_ingestion_filename(filenames: list[str]) -> str | None:
+    normalized = [name.strip() for name in filenames if name and name.strip()]
+    if not normalized:
+        return None
+    if len(normalized) == 1:
+        return normalized[0]
+    return f"{normalized[0]} (+{len(normalized) - 1})"
+
+
 @router.post("/groups/{group_id}/ingestions/upload", response_model=IngestionCreatedResponse)
 async def upload_documents(
     group_id: UUID,
@@ -70,7 +79,13 @@ async def upload_documents(
     base_upload_dir = settings.upload_path / str(group_id)
     base_upload_dir.mkdir(parents=True, exist_ok=True)
 
-    job = IngestionJob(group_id=group_id, status=IngestionStatus.queued, stage=IngestionStage.queued, progress=0.0)
+    job = IngestionJob(
+        group_id=group_id,
+        status=IngestionStatus.queued,
+        stage=IngestionStage.queued,
+        progress=0.0,
+        filename=_build_ingestion_filename([upload.filename or "" for upload in files]),
+    )
     session.add(job)
     await session.flush()
 
@@ -84,7 +99,13 @@ async def upload_documents(
         checksum = await asyncio.to_thread(sha256_file, target)
 
         duplicate = await session.scalar(
-            select(Document).where(Document.group_id == group_id, Document.checksum == checksum).limit(1),
+            select(Document)
+            .where(
+                Document.group_id == group_id,
+                Document.checksum == checksum,
+                Document.status == DocumentStatus.indexed,
+            )
+            .limit(1),
         )
         if duplicate:
             duplicates += 1
@@ -137,7 +158,13 @@ async def upload_zip(
     extracted_dir = settings.storage_path / str(group_id) / f"zip-{uuid.uuid4()}"
     extracted_files = extract_zip(archive_path=archive_path, destination_dir=extracted_dir)
 
-    job = IngestionJob(group_id=group_id, status=IngestionStatus.queued, stage=IngestionStage.queued, progress=0.0)
+    job = IngestionJob(
+        group_id=group_id,
+        status=IngestionStatus.queued,
+        stage=IngestionStage.queued,
+        progress=0.0,
+        filename=_build_ingestion_filename([archive.filename or ""]),
+    )
     session.add(job)
     await session.flush()
 
@@ -147,7 +174,13 @@ async def upload_zip(
     for extracted in extracted_files:
         checksum = await asyncio.to_thread(sha256_file, extracted)
         duplicate = await session.scalar(
-            select(Document).where(Document.group_id == group_id, Document.checksum == checksum).limit(1),
+            select(Document)
+            .where(
+                Document.group_id == group_id,
+                Document.checksum == checksum,
+                Document.status == DocumentStatus.indexed,
+            )
+            .limit(1),
         )
         if duplicate:
             duplicates += 1

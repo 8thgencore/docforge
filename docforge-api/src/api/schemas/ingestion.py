@@ -17,6 +17,7 @@ class IngestionStatusResponse(BaseModel):
 
     id: UUID
     task_id: str | None
+    filename: str | None
     group_id: UUID
     status: IngestionStatus
     stage: IngestionStage

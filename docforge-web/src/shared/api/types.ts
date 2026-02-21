@@ -47,6 +47,7 @@ export type IngestionStatus = "queued" | "running" | "retrying" | "paused" | "fa
 export interface IngestionStatusResponse {
   id: UUID;
   task_id: string | null;
+  filename: string | null;
   group_id: UUID;
   status: IngestionStatus;
   stage: string;

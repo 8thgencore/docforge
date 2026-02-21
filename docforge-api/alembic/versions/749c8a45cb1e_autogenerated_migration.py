@@ -58,6 +58,7 @@ def upgrade() -> None:
         "ingestion_jobs",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("task_id", sa.String(length=255), nullable=True),
+        sa.Column("filename", sa.String(length=512), nullable=True),
         sa.Column("group_id", sa.UUID(), nullable=False),
         sa.Column(
             "status",

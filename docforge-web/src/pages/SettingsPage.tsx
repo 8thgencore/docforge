@@ -138,7 +138,11 @@ export const SettingsPage = () => {
             {embeddingError && <p className="text-destructive text-sm">{embeddingError}</p>}
 
             <div>
-              <Button type="button" onClick={() => checkEmbeddingMutation.mutate()} disabled={checkEmbeddingMutation.isPending}>
+              <Button
+                type="button"
+                onClick={() => checkEmbeddingMutation.mutate()}
+                disabled={checkEmbeddingMutation.isPending}
+              >
                 {checkEmbeddingMutation.isPending ? t("settings.checking") : t("settings.checkConnection")}
               </Button>
             </div>
