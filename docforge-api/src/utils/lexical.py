@@ -1,6 +1,7 @@
 import re
 
-TOKEN_PATTERN = re.compile(r"[A-Za-z0-9_]+")
+# Unicode-aware tokenization so Cyrillic and other scripts are searchable.
+TOKEN_PATTERN = re.compile(r"\w+", flags=re.UNICODE)
 
 
 def tokenize(text: str) -> set[str]:

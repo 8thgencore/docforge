@@ -42,6 +42,7 @@ class RetrievalService:
         top_k: int,
     ) -> list[RetrievedChunk]:
         merged: dict[UUID, RetrievedChunk] = {}
+        has_vector_results = False
 
         try:
             query_vector = (await self._embedder.embed_texts([query]))[0]
@@ -65,6 +66,7 @@ class RetrievalService:
                     text=str(payload.get("text", "")),
                     score=float(hit.score) * 0.7,
                 )
+            has_vector_results = bool(vector_hits)
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code == 429:
                 logger.warning("rate limited by embedding provider, fallback to lexical retrieval only")
@@ -94,9 +96,10 @@ class RetrievalService:
         for lexical in lexical_candidates:
             if lexical.score <= 0:
                 continue
+            lexical_weight = 0.3 if has_vector_results else 1.0
             if lexical.chunk_id in merged:
                 existing = merged[lexical.chunk_id]
-                existing.score += lexical.score * 0.3
+                existing.score += lexical.score * lexical_weight
                 continue
             merged[lexical.chunk_id] = RetrievedChunk(
                 chunk_id=lexical.chunk_id,
@@ -104,7 +107,7 @@ class RetrievalService:
                 filename=lexical.filename,
                 tag=lexical.tag,
                 text=lexical.text,
-                score=lexical.score * 0.3,
+                score=lexical.score * lexical_weight,
             )
 
         ranked = sorted(merged.values(), key=lambda item: item.score, reverse=True)
