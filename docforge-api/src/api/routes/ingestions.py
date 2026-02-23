@@ -6,7 +6,7 @@ import uuid
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,7 +18,6 @@ from src.infrastructure.persistence.models.entities import (
     Document,
     DocumentGroup,
     DocumentStatus,
-    DocumentTag,
     IngestionJob,
     IngestionStage,
     IngestionStatus,
@@ -44,19 +43,6 @@ async def _dispatch_ingestion(job: IngestionJob, document_ids: list[str]) -> str
     return getattr(task, "task_id", None)
 
 
-async def _ensure_tag(session: AsyncSession, raw_tag: str | None) -> str | None:
-    if raw_tag is None:
-        return None
-    normalized_tag = raw_tag.strip()
-    if not normalized_tag:
-        return None
-    existing = await session.scalar(select(DocumentTag).where(DocumentTag.name == normalized_tag))
-    if existing is None:
-        session.add(DocumentTag(name=normalized_tag))
-        await session.flush()
-    return normalized_tag
-
-
 def _build_ingestion_filename(filenames: list[str]) -> str | None:
     normalized = [name.strip() for name in filenames if name and name.strip()]
     if not normalized:
@@ -70,12 +56,9 @@ def _build_ingestion_filename(filenames: list[str]) -> str | None:
 async def upload_documents(
     group_id: UUID,
     files: list[UploadFile] = File(...),
-    tag: str | None = Form(default=None),
-    category: str | None = Form(default=None),
     session: AsyncSession = Depends(get_session),
 ) -> IngestionCreatedResponse:
     await _ensure_group(session, group_id)
-    selected_tag = await _ensure_tag(session=session, raw_tag=tag or category)
     base_upload_dir = settings.upload_path / str(group_id)
     base_upload_dir.mkdir(parents=True, exist_ok=True)
 
@@ -114,7 +97,6 @@ async def upload_documents(
 
         document = Document(
             group_id=group_id,
-            tag=selected_tag,
             source_type=SourceType.upload,
             source_uri=str(target),
             filename=original_name,
@@ -143,12 +125,9 @@ async def upload_documents(
 async def upload_zip(
     group_id: UUID,
     archive: UploadFile = File(...),
-    tag: str | None = Form(default=None),
-    category: str | None = Form(default=None),
     session: AsyncSession = Depends(get_session),
 ) -> IngestionCreatedResponse:
     await _ensure_group(session, group_id)
-    selected_tag = await _ensure_tag(session=session, raw_tag=tag or category)
     base_upload_dir = settings.upload_path / str(group_id)
     base_upload_dir.mkdir(parents=True, exist_ok=True)
 
@@ -188,7 +167,6 @@ async def upload_zip(
 
         document = Document(
             group_id=group_id,
-            tag=selected_tag,
             source_type=SourceType.zip_upload,
             source_uri=str(extracted),
             filename=extracted.name,

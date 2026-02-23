@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input } from "@/components/ui";
 import { GroupSelector } from "@/features/groups/group-selector";
 import { useGroups } from "@/features/groups/use-groups";
-import { TagInput } from "@/features/tags/tag-input";
 import { api } from "@/shared/api/client";
 import { toApiError } from "@/shared/api/errors";
 import type { IngestionStatus, IngestionStatusResponse } from "@/shared/api/types";
@@ -54,7 +53,6 @@ export const IngestionPage = () => {
   const queryClient = useQueryClient();
   const groupsQuery = useGroups();
   const [selectedGroupId, setSelectedGroupId] = useState("");
-  const [tag, setTag] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,10 +68,10 @@ export const IngestionPage = () => {
       }
 
       if (files.length === 1 && isZipArchive(files[0])) {
-        return api.uploadZip(config, selectedGroupId, files[0], tag);
+        return api.uploadZip(config, selectedGroupId, files[0]);
       }
 
-      return api.uploadDocuments(config, selectedGroupId, files, tag);
+      return api.uploadDocuments(config, selectedGroupId, files);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["ingestions"] });
@@ -120,7 +118,6 @@ export const IngestionPage = () => {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="grid content-start gap-4">
               <GroupSelector groups={groupsQuery.data ?? []} value={selectedGroupId} onChange={setSelectedGroupId} />
-              <TagInput value={tag} onChange={setTag} label={t("tags.labelOptional")} />
               <Button
                 onClick={() => uploadMutation.mutate()}
                 disabled={uploadMutation.isPending || !selectedGroupId || !config.apiKey}

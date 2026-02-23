@@ -7,7 +7,6 @@ import { GroupsPage } from "@/pages/GroupsPage";
 import { IngestionPage } from "@/pages/IngestionPage";
 import { SearchPage } from "@/pages/SearchPage";
 import { SettingsPage } from "@/pages/SettingsPage";
-import { TagsPage } from "@/pages/TagsPage";
 
 export const AppRouter = () => {
   return (
@@ -20,7 +19,6 @@ export const AppRouter = () => {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/draft" element={<DraftPage />} />
-          <Route path="/tags" element={<TagsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

@@ -14,7 +14,6 @@ from src.application.retrieval import RetrievalService
 class ChatState(TypedDict, total=False):
     query: str
     group_id: UUID | None
-    tag: str | None
     top_k: int
     retrieved: list
     answer: str
@@ -33,20 +32,18 @@ class ChatPipeline:
         session: AsyncSession,
         query: str,
         group_id: UUID | None,
-        tag: str | None,
         top_k: int,
     ) -> tuple[str, list[Citation], bool]:
         try:
-            return await self._run_langgraph(session, query, group_id, tag, top_k)
+            return await self._run_langgraph(session, query, group_id, top_k)
         except Exception:
-            return await self._run_fallback(session, query, group_id, tag, top_k)
+            return await self._run_fallback(session, query, group_id, top_k)
 
     async def _run_langgraph(
         self,
         session: AsyncSession,
         query: str,
         group_id: UUID | None,
-        tag: str | None,
         top_k: int,
     ) -> tuple[str, list[Citation], bool]:
         from langgraph.graph import END, StateGraph
@@ -56,7 +53,6 @@ class ChatPipeline:
                 session=session,
                 query=state["query"],
                 group_id=state.get("group_id"),
-                tag=state.get("tag"),
                 top_k=state["top_k"],
             )
             return {"retrieved": retrieved}
@@ -106,7 +102,6 @@ class ChatPipeline:
             {
                 "query": query,
                 "group_id": group_id,
-                "tag": tag,
                 "top_k": top_k,
             },
         )
@@ -122,14 +117,12 @@ class ChatPipeline:
         session: AsyncSession,
         query: str,
         group_id: UUID | None,
-        tag: str | None,
         top_k: int,
     ) -> tuple[str, list[Citation], bool]:
         retrieved = await self.retrieval.retrieve(
             session=session,
             query=query,
             group_id=group_id,
-            tag=tag,
             top_k=top_k,
         )
         citations = build_citations(retrieved)
@@ -155,7 +148,6 @@ def build_citations(retrieved: list) -> list[Citation]:
             document_id=item.document_id,
             chunk_id=item.chunk_id,
             filename=item.filename,
-            tag=item.tag,
             score=item.score,
         )
         for item in retrieved

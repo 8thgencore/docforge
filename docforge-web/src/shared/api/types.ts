@@ -22,20 +22,6 @@ export interface GroupDocumentsClearResponse {
   deleted_documents: number;
 }
 
-export interface TagCreateRequest {
-  name: string;
-}
-
-export interface TagUpdateRequest {
-  name: string;
-}
-
-export interface TagResponse {
-  id: UUID;
-  name: string;
-  created_at: string;
-}
-
 export interface IngestionCreatedResponse {
   ingestion_id: UUID;
   task_id: string | null;
@@ -61,7 +47,6 @@ export interface IngestionStatusResponse {
 export interface SearchRequest {
   query: string;
   group_id?: UUID | null;
-  tag?: string | null;
   top_k?: number;
 }
 
@@ -69,7 +54,6 @@ export interface SearchHit {
   chunk_id: UUID;
   document_id: UUID;
   filename: string;
-  tag: string | null;
   score: number;
   text: string;
 }
@@ -82,7 +66,6 @@ export interface ChatRequest {
   query: string;
   session_id?: string | null;
   group_id?: UUID | null;
-  tag?: string | null;
   top_k?: number;
 }
 
@@ -90,7 +73,6 @@ export interface Citation {
   document_id: UUID;
   chunk_id: UUID;
   filename: string;
-  tag: string | null;
   score: number;
 }
 
@@ -102,7 +84,6 @@ export interface ChatResponse {
 
 export interface DraftRequest {
   group_id: UUID;
-  tag: string;
   prompt: string;
   length?: string;
   tone?: string;
@@ -119,7 +100,6 @@ export interface DraftResponse {
 export interface DocumentResponse {
   id: UUID;
   group_id: UUID;
-  tag: string | null;
   source_type: "upload" | "zip_upload";
   source_uri: string;
   filename: string;

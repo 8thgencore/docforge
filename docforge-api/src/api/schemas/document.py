@@ -11,7 +11,6 @@ class DocumentResponse(BaseModel):
 
     id: UUID
     group_id: UUID
-    tag: str | None
     source_type: SourceType
     source_uri: str
     filename: str

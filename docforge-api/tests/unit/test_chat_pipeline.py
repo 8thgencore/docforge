@@ -8,13 +8,12 @@ from src.application.retrieval import RetrievedChunk
 
 
 class FakeRetrievalLow:
-    async def retrieve(self, session, query, group_id, tag, top_k):
+    async def retrieve(self, session, query, group_id, top_k):
         return [
             RetrievedChunk(
                 chunk_id=uuid.uuid4(),
                 document_id=uuid.uuid4(),
                 filename="a.txt",
-                tag="reports",
                 text="short context",
                 score=0.1,
             ),
@@ -22,13 +21,12 @@ class FakeRetrievalLow:
 
 
 class FakeRetrievalHigh:
-    async def retrieve(self, session, query, group_id, tag, top_k):
+    async def retrieve(self, session, query, group_id, top_k):
         return [
             RetrievedChunk(
                 chunk_id=uuid.uuid4(),
                 document_id=uuid.uuid4(),
                 filename="a.txt",
-                tag="reports",
                 text="relevant context",
                 score=0.9,
             ),
@@ -48,7 +46,6 @@ async def test_chat_pipeline_marks_insufficient_context_for_low_score() -> None:
         session=None,
         query="question",
         group_id=None,
-        tag=None,
         top_k=4,
     )
 
@@ -69,7 +66,6 @@ async def test_chat_pipeline_generates_when_confident() -> None:
         session=None,
         query="question",
         group_id=None,
-        tag=None,
         top_k=4,
     )
 
@@ -83,7 +79,6 @@ def test_build_citations_maps_retrieved_chunks() -> None:
         chunk_id=uuid.uuid4(),
         document_id=uuid.uuid4(),
         filename="x.txt",
-        tag=None,
         text="ctx",
         score=0.5,
     )

@@ -53,7 +53,6 @@ def _build_chunk_payload(document: Document, point_id: str, chunk_text: str) -> 
         "document_id": str(document.id),
         "chunk_id": point_id,
         "filename": document.filename,
-        "tag": document.tag,
         "text": chunk_text,
     }
 

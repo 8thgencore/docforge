@@ -9,7 +9,6 @@ import {
   PinOff,
   Search,
   Settings,
-  Tags,
   UploadCloud,
   X,
 } from "lucide-react";
@@ -95,10 +94,7 @@ export const AppLayout = () => {
       },
       {
         title: t("nav.sectionWorkspace"),
-        items: [
-          { to: "/groups", label: t("nav.groups"), icon: FolderKanban },
-          { to: "/tags", label: t("nav.tags"), icon: Tags },
-        ],
+        items: [{ to: "/groups", label: t("nav.groups"), icon: FolderKanban }],
       },
       {
         title: t("nav.sectionSystem"),

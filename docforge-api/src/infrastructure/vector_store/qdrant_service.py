@@ -46,10 +46,9 @@ class QdrantService:
         self,
         query_vector: list[float],
         group_id: UUID | None,
-        tag: str | None,
         limit: int,
     ) -> list[qm.ScoredPoint]:
-        query_filter = build_scope_filter(group_id=group_id, tag=tag)
+        query_filter = build_scope_filter(group_id=group_id)
         try:
             return await self._client.search(
                 collection_name=self.collection,
@@ -63,7 +62,7 @@ class QdrantService:
             return []
 
     async def delete_group_points(self, group_id: UUID) -> None:
-        query_filter = build_scope_filter(group_id=group_id, tag=None)
+        query_filter = build_scope_filter(group_id=group_id)
         if query_filter is None:
             return
         try:

@@ -19,7 +19,6 @@ class DraftService:
         self,
         session: AsyncSession,
         group_id,
-        tag: str,
         prompt: str,
         length: str,
         tone: str,
@@ -29,7 +28,6 @@ class DraftService:
             session=session,
             query=prompt,
             group_id=group_id,
-            tag=tag,
             top_k=12,
         )
         citations = [
@@ -37,7 +35,6 @@ class DraftService:
                 document_id=item.document_id,
                 chunk_id=item.chunk_id,
                 filename=item.filename,
-                tag=item.tag,
                 score=item.score,
             )
             for item in retrieved
@@ -48,13 +45,12 @@ class DraftService:
                 title="Черновик",
                 sections=[],
                 citations=[],
-                warnings=["Для выбранного тега не найден контекст."],
+                warnings=["Не найден подходящий контекст в выбранной группе."],
             )
 
         style_examples = "\n\n".join(item.text for item in retrieved[:4])
         prompt_text = (
             f"Сгенерируй черновик документа формата {format_name}.\n"
-            f"Тег: {tag}.\n"
             f"Тон: {tone}.\n"
             f"Длина: {length}.\n"
             f"Задача: {prompt}.\n\n"

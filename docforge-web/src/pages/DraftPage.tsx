@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Label, Select, Textarea } from "@/components/ui";
 import { GroupSelector } from "@/features/groups/group-selector";
 import { useGroups } from "@/features/groups/use-groups";
-import { TagInput } from "@/features/tags/tag-input";
 import { api } from "@/shared/api/client";
 import { toApiError } from "@/shared/api/errors";
 import type { DraftResponse } from "@/shared/api/types";
@@ -17,7 +16,6 @@ export const DraftPage = () => {
   const groupsQuery = useGroups();
   const { t } = useI18n();
   const [selectedGroupId, setSelectedGroupId] = useState("");
-  const [tag, setTag] = useState("");
   const [prompt, setPrompt] = useState("");
   const [length, setLength] = useState("medium");
   const [tone, setTone] = useState("neutral");
@@ -28,7 +26,6 @@ export const DraftPage = () => {
     mutationFn: () =>
       api.generateDraft(config, {
         group_id: selectedGroupId,
-        tag,
         prompt,
         length,
         tone,
@@ -49,9 +46,8 @@ export const DraftPage = () => {
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
-          <div className="grid gap-2 md:grid-cols-2">
+          <div className="grid gap-2">
             <GroupSelector groups={groupsQuery.data ?? []} value={selectedGroupId} onChange={setSelectedGroupId} />
-            <TagInput value={tag} onChange={setTag} label={t("tags.labelRequired")} />
           </div>
 
           <div className="grid gap-2 md:grid-cols-3">
@@ -93,7 +89,7 @@ export const DraftPage = () => {
 
           <div>
             <Button
-              disabled={!selectedGroupId || !tag || !prompt || !config.apiKey || mutation.isPending}
+              disabled={!selectedGroupId || !prompt || !config.apiKey || mutation.isPending}
               onClick={() => mutation.mutate()}
             >
               {mutation.isPending ? t("draft.loading") : t("draft.action")}

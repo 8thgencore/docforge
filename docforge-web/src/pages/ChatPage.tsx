@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Label, Textarea } from "@/components/ui";
 import { GroupSelector } from "@/features/groups/group-selector";
 import { useGroups } from "@/features/groups/use-groups";
-import { TagInput } from "@/features/tags/tag-input";
 import { api } from "@/shared/api/client";
 import { toApiError } from "@/shared/api/errors";
 import type { ChatResponse } from "@/shared/api/types";
@@ -18,7 +17,6 @@ export const ChatPage = () => {
   const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
-  const [tag, setTag] = useState("");
   const [response, setResponse] = useState<ChatResponse | null>(null);
 
   const chatMutation = useMutation({
@@ -26,7 +24,6 @@ export const ChatPage = () => {
       api.chat(config, {
         query,
         group_id: selectedGroupId || undefined,
-        tag: tag || undefined,
       }),
     onSuccess: (data) => {
       setResponse(data);
@@ -43,14 +40,13 @@ export const ChatPage = () => {
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
-          <div className="grid gap-2 md:grid-cols-2">
+          <div className="grid gap-2">
             <GroupSelector
               groups={groupsQuery.data ?? []}
               value={selectedGroupId}
               onChange={setSelectedGroupId}
               allowAll
             />
-            <TagInput value={tag} onChange={setTag} label={t("tags.labelFilter")} />
           </div>
 
           <div className="grid gap-2">

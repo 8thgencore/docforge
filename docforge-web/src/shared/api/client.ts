@@ -17,9 +17,6 @@ import type {
   IngestionStatusResponse,
   SearchRequest,
   SearchResponse,
-  TagCreateRequest,
-  TagResponse,
-  TagUpdateRequest,
 } from "@/shared/api/types";
 
 const request = async <T>(config: ApiConfig, endpoint: string, options: AxiosRequestConfig = {}): Promise<T> => {
@@ -55,22 +52,6 @@ export const api = {
 
   listGroups: (config: ApiConfig) => request<GroupResponse[]>(config, "/groups"),
 
-  listTags: (config: ApiConfig, query?: string) =>
-    request<TagResponse[]>(config, "/tags", {
-      params: query?.trim() ? { q: query.trim(), limit: 20 } : { limit: 20 },
-    }),
-
-  createTag: (config: ApiConfig, payload: TagCreateRequest) =>
-    request<TagResponse>(config, "/tags", { method: "POST", data: payload }),
-
-  updateTag: (config: ApiConfig, tagId: string, payload: TagUpdateRequest) =>
-    request<TagResponse>(config, `/tags/${tagId}`, {
-      method: "PATCH",
-      data: payload,
-    }),
-
-  deleteTag: (config: ApiConfig, tagId: string) => request<void>(config, `/tags/${tagId}`, { method: "DELETE" }),
-
   updateGroup: (config: ApiConfig, groupId: string, payload: GroupUpdateRequest) =>
     request<GroupResponse>(config, `/groups/${groupId}`, {
       method: "PATCH",
@@ -83,13 +64,10 @@ export const api = {
   deleteGroup: (config: ApiConfig, groupId: string) =>
     request<void>(config, `/groups/${groupId}`, { method: "DELETE" }),
 
-  uploadDocuments: (config: ApiConfig, groupId: string, files: File[], tag?: string) => {
+  uploadDocuments: (config: ApiConfig, groupId: string, files: File[]) => {
     const formData = new FormData();
     for (const file of files) {
       formData.append("files", file);
-    }
-    if (tag?.trim()) {
-      formData.append("tag", tag);
     }
     return request<IngestionCreatedResponse>(config, `/groups/${groupId}/ingestions/upload`, {
       method: "POST",
@@ -97,12 +75,9 @@ export const api = {
     });
   },
 
-  uploadZip: (config: ApiConfig, groupId: string, archive: File, tag?: string) => {
+  uploadZip: (config: ApiConfig, groupId: string, archive: File) => {
     const formData = new FormData();
     formData.append("archive", archive);
-    if (tag?.trim()) {
-      formData.append("tag", tag);
-    }
     return request<IngestionCreatedResponse>(config, `/groups/${groupId}/ingestions/zip`, {
       method: "POST",
       data: formData,
