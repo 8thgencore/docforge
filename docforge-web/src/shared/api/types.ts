@@ -78,16 +78,30 @@ export interface ChatRequest {
 }
 
 export interface Citation {
+  index: number | null;
   document_id: UUID;
   chunk_id: UUID;
   filename: string;
   score: number;
+  group_id: UUID | null;
+  group_name: string | null;
+  document_url: string | null;
+  snippet: string | null;
+  chunk_index: number | null;
+}
+
+export interface ChatQuality {
+  low_confidence: boolean;
+  reason: string;
+  best_score?: number | null;
+  used_chunks: number;
 }
 
 export interface ChatResponse {
   answer: string;
   citations: Citation[];
   insufficient_context: boolean;
+  quality: ChatQuality;
 }
 
 export interface DraftRequest {

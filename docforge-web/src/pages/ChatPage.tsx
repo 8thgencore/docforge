@@ -47,7 +47,7 @@ export const ChatPage = () => {
           id: buildMessageId(),
           role: "assistant",
           citations: data.citations,
-          insufficientContext: data.insufficient_context,
+          insufficientContext: data.quality?.low_confidence ?? data.insufficient_context,
         },
       ]);
     },
@@ -85,6 +85,17 @@ export const ChatPage = () => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, chatMutation.isPending]);
 
+  const buildDocumentHref = (documentUrl: string | null) => {
+    if (!documentUrl) {
+      return null;
+    }
+    try {
+      return new URL(documentUrl, config.baseUrl).toString();
+    } catch {
+      return null;
+    }
+  };
+
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       <section className="flex min-h-0 w-full flex-1 flex-col px-4 md:px-8">
@@ -112,10 +123,29 @@ export const ChatPage = () => {
                     {message.citations?.map((citation) => (
                       <div key={citation.chunk_id} className="border-border rounded border p-2 text-xs">
                         <div className="flex flex-wrap items-center gap-2">
+                          {citation.index ? <Badge>{`[${citation.index}]`}</Badge> : null}
                           <Badge>{citation.score.toFixed(3)}</Badge>
                           <span>{citation.filename}</span>
+                          {citation.group_name ? (
+                            <span className="text-muted-foreground">{`(${citation.group_name})`}</span>
+                          ) : null}
                         </div>
-                        <p className="text-muted-foreground mt-1">chunk: {citation.chunk_id}</p>
+                        <p className="text-muted-foreground mt-1">
+                          {citation.chunk_index !== null && citation.chunk_index !== undefined
+                            ? `chunk #${citation.chunk_index}`
+                            : `chunk: ${citation.chunk_id}`}
+                        </p>
+                        {citation.snippet ? <p className="text-muted-foreground mt-1 line-clamp-3">{citation.snippet}</p> : null}
+                        {buildDocumentHref(citation.document_url) ? (
+                          <a
+                            className="mt-2 inline-block underline"
+                            href={buildDocumentHref(citation.document_url) ?? "#"}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {t("chat.openSource")}
+                          </a>
+                        ) : null}
                       </div>
                     ))}
                   </div>

@@ -1,24 +1,42 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import TypedDict
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.schemas.chat import Citation
 from src.application.ports.llm import TextGenerator
-from src.application.retrieval import RetrievalService
+from src.application.retrieval import RetrievalService, RetrievedChunk
+
+logger = logging.getLogger(__name__)
+
+QUALITY_REASON_OK = "ok"
+QUALITY_REASON_INSUFFICIENT_CONTEXT = "insufficient_context"
+QUALITY_REASON_NO_RELEVANT_CHUNKS = "no_relevant_chunks"
 
 
 class ChatState(TypedDict, total=False):
     query: str
     group_id: UUID | None
     top_k: int
-    retrieved: list
+    retrieved: list[RetrievedChunk]
     answer: str
-    citations: list[Citation]
-    insufficient_context: bool
+    quality_reason: str
+    low_confidence: bool
+    best_score: float | None
+    used_chunks: int
+
+
+@dataclass(slots=True)
+class ChatPipelineResult:
+    answer: str
+    retrieved: list[RetrievedChunk]
+    quality_reason: str
+    low_confidence: bool
+    best_score: float | None
+    used_chunks: int
 
 
 @dataclass(slots=True)
@@ -33,10 +51,11 @@ class ChatPipeline:
         query: str,
         group_id: UUID | None,
         top_k: int,
-    ) -> tuple[str, list[Citation], bool]:
+    ) -> ChatPipelineResult:
         try:
             return await self._run_langgraph(session, query, group_id, top_k)
         except Exception:
+            logger.exception("langgraph chat flow failed, using fallback")
             return await self._run_fallback(session, query, group_id, top_k)
 
     async def _run_langgraph(
@@ -45,7 +64,7 @@ class ChatPipeline:
         query: str,
         group_id: UUID | None,
         top_k: int,
-    ) -> tuple[str, list[Citation], bool]:
+    ) -> ChatPipelineResult:
         from langgraph.graph import END, StateGraph
 
         async def retrieve_node(state: ChatState) -> ChatState:
@@ -55,47 +74,48 @@ class ChatPipeline:
                 group_id=state.get("group_id"),
                 top_k=state["top_k"],
             )
-            return {"retrieved": retrieved}
+            best_score = retrieved[0].score if retrieved else None
+            low_confidence = bool(retrieved) and bool(
+                best_score is not None and best_score < self.low_confidence_threshold,
+            )
+            if not retrieved:
+                quality_reason = QUALITY_REASON_NO_RELEVANT_CHUNKS
+            elif low_confidence:
+                quality_reason = QUALITY_REASON_INSUFFICIENT_CONTEXT
+            else:
+                quality_reason = QUALITY_REASON_OK
+            return {
+                "retrieved": retrieved,
+                "best_score": best_score,
+                "low_confidence": low_confidence,
+                "quality_reason": quality_reason,
+                "used_chunks": len(retrieved),
+            }
 
         async def generate_node(state: ChatState) -> ChatState:
             retrieved = state.get("retrieved", [])
+            quality_reason = str(state.get("quality_reason", QUALITY_REASON_OK))
             if not retrieved:
                 return {
-                    "answer": "Недостаточно контекста в базе знаний для ответа.",
-                    "insufficient_context": True,
-                }
-            best_score = retrieved[0].score
-            if best_score < self.low_confidence_threshold:
-                return {
-                    "answer": "Недостаточно подтвержденного контекста. Уточните запрос или расширьте набор документов.",
-                    "insufficient_context": True,
+                    "answer": (
+                        "Не удалось найти релевантные фрагменты в базе знаний по этому запросу. "
+                        "Уточните формулировку вопроса или выберите другую группу документов."
+                    ),
                 }
 
-            context_blocks = [f"[{item.chunk_id}] {item.text}" for item in retrieved]
-            prompt = (
-                "Ответь на вопрос пользователя, опираясь только на контекст. "
-                "Если факта нет в контексте - прямо скажи об этом.\n\n"
-                f"Вопрос: {state['query']}\n\n"
-                f"Контекст:\n{'\n\n'.join(context_blocks)}"
+            answer = await self._generate_answer(
+                query=state["query"],
+                retrieved=retrieved,
+                quality_reason=quality_reason,
             )
-            answer = await self.generator.generate(
-                prompt=prompt,
-                system="Ты RAG-ассистент, давай точные ответы по источникам.",
-            )
-            return {"answer": answer, "insufficient_context": False}
-
-        def citation_node(state: ChatState) -> ChatState:
-            citations = build_citations(state.get("retrieved", []))
-            return {"citations": citations}
+            return {"answer": answer}
 
         workflow = StateGraph(ChatState)
         workflow.add_node("retrieve", retrieve_node)
         workflow.add_node("generate", generate_node)
-        workflow.add_node("citations", citation_node)
         workflow.set_entry_point("retrieve")
         workflow.add_edge("retrieve", "generate")
-        workflow.add_edge("generate", "citations")
-        workflow.add_edge("citations", END)
+        workflow.add_edge("generate", END)
 
         graph = workflow.compile()
         result: ChatState = await graph.ainvoke(
@@ -106,10 +126,13 @@ class ChatPipeline:
             },
         )
 
-        return (
-            str(result.get("answer", "")),
-            list(result.get("citations", [])),
-            bool(result.get("insufficient_context", False)),
+        return ChatPipelineResult(
+            answer=str(result.get("answer", "")),
+            retrieved=list(result.get("retrieved", [])),
+            quality_reason=str(result.get("quality_reason", QUALITY_REASON_OK)),
+            low_confidence=bool(result.get("low_confidence", False)),
+            best_score=float(result["best_score"]) if result.get("best_score") is not None else None,
+            used_chunks=int(result.get("used_chunks", 0)),
         )
 
     async def _run_fallback(
@@ -118,37 +141,61 @@ class ChatPipeline:
         query: str,
         group_id: UUID | None,
         top_k: int,
-    ) -> tuple[str, list[Citation], bool]:
+    ) -> ChatPipelineResult:
         retrieved = await self.retrieval.retrieve(
             session=session,
             query=query,
             group_id=group_id,
             top_k=top_k,
         )
-        citations = build_citations(retrieved)
+        best_score = retrieved[0].score if retrieved else None
+        low_confidence = bool(retrieved) and bool(
+            best_score is not None and best_score < self.low_confidence_threshold,
+        )
 
-        if not retrieved or retrieved[0].score < self.low_confidence_threshold:
-            return (
-                "Недостаточно подтвержденного контекста. Уточните запрос или расширьте базу документов.",
-                citations,
-                True,
+        if not retrieved:
+            return ChatPipelineResult(
+                answer=(
+                    "Не удалось найти релевантные фрагменты в базе знаний по этому запросу. "
+                    "Уточните формулировку вопроса или выберите другую группу документов."
+                ),
+                retrieved=[],
+                quality_reason=QUALITY_REASON_NO_RELEVANT_CHUNKS,
+                low_confidence=False,
+                best_score=None,
+                used_chunks=0,
             )
 
-        context = "\n\n".join([f"[{item.chunk_id}] {item.text}" for item in retrieved])
-        answer = await self.generator.generate(
-            prompt=(f"Ответь на вопрос пользователя строго по контексту.\nВопрос: {query}\n\nКонтекст:\n{context}"),
-            system="Ты RAG-ассистент, опирающийся на источники.",
+        quality_reason = QUALITY_REASON_INSUFFICIENT_CONTEXT if low_confidence else QUALITY_REASON_OK
+        answer = await self._generate_answer(query=query, retrieved=retrieved, quality_reason=quality_reason)
+        return ChatPipelineResult(
+            answer=answer,
+            retrieved=retrieved,
+            quality_reason=quality_reason,
+            low_confidence=low_confidence,
+            best_score=best_score,
+            used_chunks=len(retrieved),
         )
-        return answer, citations, False
 
+    async def _generate_answer(self, query: str, retrieved: list[RetrievedChunk], quality_reason: str) -> str:
+        context_blocks = [f"[{index}] {item.text}" for index, item in enumerate(retrieved, start=1)]
+        quality_note = ""
+        if quality_reason == QUALITY_REASON_INSUFFICIENT_CONTEXT:
+            quality_note = (
+                "Контекст ограничен: ответь максимально полезно, но явно укажи, где уверенность низкая. "
+                "Ссылки [n] обязательны для всех утверждений.\n"
+            )
 
-def build_citations(retrieved: list) -> list[Citation]:
-    return [
-        Citation(
-            document_id=item.document_id,
-            chunk_id=item.chunk_id,
-            filename=item.filename,
-            score=item.score,
+        prompt = (
+            "Ответь на вопрос пользователя, опираясь только на контекст. "
+            "После каждого фактического утверждения добавляй ссылку вида [n]. "
+            "Используй только номера, которые есть в контексте. "
+            "Если данных недостаточно, прямо укажи ограничения.\n"
+            f"{quality_note}\n"
+            f"Вопрос: {query}\n\n"
+            f"Контекст:\n{'\n\n'.join(context_blocks)}"
         )
-        for item in retrieved
-    ]
+        return await self.generator.generate(
+            prompt=prompt,
+            system="Ты RAG-ассистент, который всегда указывает источники в формате [n].",
+        )

@@ -6,11 +6,11 @@ readme = "README.md"
 requires-python = ">=3.13"
 authors = [{ name = "DocForge Team" }]
 dependencies = [
-  "fastapi>=0.129.2",
+  "fastapi>=0.133.0",
   "uvicorn[standard]>=0.41.0",
   "pydantic>=2.12.5",
   "pydantic-settings>=2.13.1",
-  "sqlalchemy[asyncio]>=2.0.46",
+  "sqlalchemy[asyncio]>=2.0.47",
   "asyncpg>=0.31.0",
   "alembic>=1.18.4",
   "taskiq>=0.12.1",

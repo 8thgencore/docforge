@@ -2,8 +2,12 @@ import uuid
 
 import pytest
 
-from src.api.schemas.chat import Citation
-from src.application.chat_pipeline import ChatPipeline, build_citations
+from src.application.chat_pipeline import (
+    QUALITY_REASON_INSUFFICIENT_CONTEXT,
+    QUALITY_REASON_NO_RELEVANT_CHUNKS,
+    QUALITY_REASON_OK,
+    ChatPipeline,
+)
 from src.application.retrieval import RetrievedChunk
 
 
@@ -33,57 +37,67 @@ class FakeRetrievalHigh:
         ]
 
 
-class FakeOllama:
+class FakeRetrievalEmpty:
+    async def retrieve(self, session, query, group_id, top_k):
+        return []
+
+
+class FakeGenerator:
     async def generate(self, prompt: str, system: str | None = None) -> str:
-        return "answer"
+        return "answer [1]"
 
 
 @pytest.mark.asyncio
-async def test_chat_pipeline_marks_insufficient_context_for_low_score() -> None:
-    pipeline = ChatPipeline(retrieval=FakeRetrievalLow(), generator=FakeOllama(), low_confidence_threshold=0.35)
-
-    answer, citations, insufficient = await pipeline._run_fallback(
+async def test_chat_pipeline_generates_answer_for_low_score_with_warning_flag() -> None:
+    pipeline = ChatPipeline(retrieval=FakeRetrievalLow(), generator=FakeGenerator(), low_confidence_threshold=0.35)
+    result = await pipeline._run_fallback(
         session=None,
         query="question",
         group_id=None,
         top_k=4,
     )
 
-    assert insufficient is True
-    assert len(citations) == 1
-    assert "Недостаточно" in answer
+    assert result.low_confidence is True
+    assert result.quality_reason == QUALITY_REASON_INSUFFICIENT_CONTEXT
+    assert result.answer == "answer [1]"
+    assert len(result.retrieved) == 1
 
 
 @pytest.mark.asyncio
 async def test_chat_pipeline_generates_when_confident() -> None:
     pipeline = ChatPipeline(
         retrieval=FakeRetrievalHigh(),
-        generator=FakeOllama(),
+        generator=FakeGenerator(),
         low_confidence_threshold=0.35,
     )
-
-    answer, citations, insufficient = await pipeline._run_fallback(
+    result = await pipeline._run_fallback(
         session=None,
         query="question",
         group_id=None,
         top_k=4,
     )
 
-    assert insufficient is False
-    assert answer == "answer"
-    assert len(citations) == 1
+    assert result.low_confidence is False
+    assert result.quality_reason == QUALITY_REASON_OK
+    assert result.answer == "answer [1]"
+    assert len(result.retrieved) == 1
 
 
-def test_build_citations_maps_retrieved_chunks() -> None:
-    chunk = RetrievedChunk(
-        chunk_id=uuid.uuid4(),
-        document_id=uuid.uuid4(),
-        filename="x.txt",
-        text="ctx",
-        score=0.5,
+@pytest.mark.asyncio
+async def test_chat_pipeline_handles_empty_retrieval() -> None:
+    pipeline = ChatPipeline(
+        retrieval=FakeRetrievalEmpty(),
+        generator=FakeGenerator(),
+        low_confidence_threshold=0.35,
     )
-    citations = build_citations([chunk])
+    result = await pipeline._run_fallback(
+        session=None,
+        query="question",
+        group_id=None,
+        top_k=4,
+    )
 
-    assert len(citations) == 1
-    assert isinstance(citations[0], Citation)
-    assert citations[0].filename == "x.txt"
+    assert result.quality_reason == QUALITY_REASON_NO_RELEVANT_CHUNKS
+    assert result.used_chunks == 0
+    assert result.retrieved == []
+    assert "Не удалось найти релевантные фрагменты" in result.answer

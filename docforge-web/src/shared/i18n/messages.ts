@@ -127,6 +127,7 @@ export const messages: Record<Language, Record<string, string>> = {
     "chat.insufficient": "Insufficient context was detected for this question.",
     "chat.citations": "Citations",
     "chat.empty": "Ask a question to start the RAG chat.",
+    "chat.openSource": "Open source",
 
     "draft.title": "Draft Generator",
     "draft.length": "Length",
@@ -263,6 +264,7 @@ export const messages: Record<Language, Record<string, string>> = {
     "chat.insufficient": "Для этого вопроса недостаточно контекста.",
     "chat.citations": "Цитаты",
     "chat.empty": "Задайте вопрос, чтобы начать RAG-диалог.",
+    "chat.openSource": "Открыть источник",
 
     "draft.title": "Генератор черновика",
     "draft.length": "Объём",
