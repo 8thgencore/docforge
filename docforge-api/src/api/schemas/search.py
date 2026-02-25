@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -9,12 +10,20 @@ class SearchRequest(BaseModel):
     top_k: int = Field(default=8, ge=1, le=30)
 
 
-class SearchHit(BaseModel):
+class SearchChunkHit(BaseModel):
     chunk_id: UUID
-    document_id: UUID
-    filename: str
     score: float
     text: str
+
+
+class SearchHit(BaseModel):
+    document_id: UUID
+    group_id: UUID | None = None
+    group_name: str | None = None
+    created_at: datetime | None = None
+    filename: str
+    score: float
+    chunks: list[SearchChunkHit]
 
 
 class SearchResponse(BaseModel):

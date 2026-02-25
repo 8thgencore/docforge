@@ -72,71 +72,85 @@ export const SettingsPage = () => {
     },
   });
 
+  const embeddingStatusLabel = checkEmbeddingMutation.isPending
+    ? t("settings.checking")
+    : embeddingError
+      ? t("settings.statusError")
+      : embeddingHealth?.status === "ok"
+        ? t("settings.statusOk")
+        : embeddingHealth?.status === "degraded"
+          ? t("settings.statusDegraded")
+          : t("settings.statusUnknown");
+  const embeddingStatusClass = embeddingError
+    ? "bg-red-500/15 text-red-700 dark:text-red-300"
+    : embeddingHealth?.status === "ok"
+      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+      : embeddingHealth?.status === "degraded"
+        ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+        : "bg-muted text-muted-foreground";
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("settings.title")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form className="grid gap-4" onSubmit={onSubmit}>
-          <div className="grid gap-2">
-            <Label htmlFor="base-url">{t("settings.baseUrl")}</Label>
-            <Input id="base-url" placeholder="http://localhost:8300/v1" {...form.register("baseUrl")} />
-            {form.formState.errors.baseUrl && (
-              <p className="text-destructive text-xs">{form.formState.errors.baseUrl.message}</p>
-            )}
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="api-key">{t("settings.apiKey")}</Label>
-            <Input id="api-key" type="password" placeholder="Enter API key" {...form.register("apiKey")} />
-            {form.formState.errors.apiKey && (
-              <p className="text-destructive text-xs">{form.formState.errors.apiKey.message}</p>
-            )}
-          </div>
-
-          <div className="grid gap-2 md:grid-cols-2">
+    <div className="grid gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("settings.title")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="grid gap-4" onSubmit={onSubmit}>
             <div className="grid gap-2">
-              <Label htmlFor="language">{t("settings.language")}</Label>
-              <Select id="language" {...form.register("language")}>
-                <option value="ru">Русский</option>
-                <option value="en">English</option>
-              </Select>
+              <Label htmlFor="base-url">{t("settings.baseUrl")}</Label>
+              <Input id="base-url" placeholder="http://localhost:8300/v1" {...form.register("baseUrl")} />
+              {form.formState.errors.baseUrl && (
+                <p className="text-destructive text-xs">{form.formState.errors.baseUrl.message}</p>
+              )}
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="theme">{t("settings.theme")}</Label>
-              <Select id="theme" {...form.register("theme")}>
-                <option value="light">{t("settings.light")}</option>
-                <option value="dark">{t("settings.dark")}</option>
-                <option value="system">{t("settings.system")}</option>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Button type="submit">{t("settings.save")}</Button>
-          </div>
-
-          <div className="border-border grid gap-2 rounded-md border p-3">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium">{t("settings.embeddingConnection")}</p>
-              <Badge>
-                {checkEmbeddingMutation.isPending
-                  ? t("settings.checking")
-                  : embeddingError
-                    ? t("settings.statusError")
-                    : embeddingHealth?.status === "ok"
-                      ? t("settings.statusOk")
-                      : embeddingHealth?.status === "degraded"
-                        ? t("settings.statusDegraded")
-                        : t("settings.statusUnknown")}
-              </Badge>
+              <Label htmlFor="api-key">{t("settings.apiKey")}</Label>
+              <Input id="api-key" type="password" placeholder="Enter API key" {...form.register("apiKey")} />
+              {form.formState.errors.apiKey && (
+                <p className="text-destructive text-xs">{form.formState.errors.apiKey.message}</p>
+              )}
             </div>
 
-            {embeddingHealth?.message && <p className="text-sm">{embeddingHealth.message}</p>}
+            <div className="grid gap-2 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="language">{t("settings.language")}</Label>
+                <Select id="language" {...form.register("language")}>
+                  <option value="ru">Русский</option>
+                  <option value="en">English</option>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="theme">{t("settings.theme")}</Label>
+                <Select id="theme" {...form.register("theme")}>
+                  <option value="light">{t("settings.light")}</option>
+                  <option value="dark">{t("settings.dark")}</option>
+                  <option value="system">{t("settings.system")}</option>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Button type="submit">{t("settings.save")}</Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="from-card to-muted/35 border-border bg-gradient-to-br">
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <CardTitle>{t("settings.embeddingConnection")}</CardTitle>
+            <Badge className={embeddingStatusClass}>{embeddingStatusLabel}</Badge>
+          </div>
+          <p className="text-muted-foreground text-sm">{t("settings.embeddingHint")}</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3">
+            {embeddingHealth?.message && <p className="text-sm leading-6">{embeddingHealth.message}</p>}
             {embeddingError && <p className="text-destructive text-sm">{embeddingError}</p>}
-
             <div>
               <Button
                 type="button"
@@ -147,8 +161,8 @@ export const SettingsPage = () => {
               </Button>
             </div>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

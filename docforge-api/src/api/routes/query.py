@@ -3,18 +3,18 @@ from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.schemas.chat import ChatRequest, ChatResponse
 from src.api.schemas.document import DocumentResponse
 from src.api.schemas.draft import DraftRequest, DraftResponse
 from src.api.schemas.health import EmbeddingHealthResponse
-from src.api.schemas.search import SearchHit, SearchRequest, SearchResponse
+from src.api.schemas.search import SearchChunkHit, SearchHit, SearchRequest, SearchResponse
 from src.bootstrap.container import get_chat_pipeline, get_draft_service, get_retrieval_service, get_text_embedder
 from src.core.config import get_settings
 from src.infrastructure.persistence.db.session import get_session
-from src.infrastructure.persistence.models.entities import Document
+from src.infrastructure.persistence.models.entities import Document, DocumentGroup
 
 router = APIRouter(tags=["rag"])
 
@@ -29,19 +29,52 @@ async def search_documents(
         session=session,
         query=payload.query,
         group_id=payload.group_id,
-        top_k=payload.top_k,
+        top_k=max(payload.top_k * 3, payload.top_k),
     )
-    return SearchResponse(
-        results=[
-            SearchHit(
-                chunk_id=item.chunk_id,
+
+    document_ids = {item.document_id for item in results}
+    document_meta: dict[UUID, tuple[UUID, str, datetime]] = {}
+    if document_ids:
+        stmt = (
+            select(Document.id, Document.group_id, Document.created_at, DocumentGroup.name)
+            .join(DocumentGroup, DocumentGroup.id == Document.group_id)
+            .where(Document.id.in_(document_ids))
+        )
+        rows = (await session.execute(stmt)).all()
+        for document_id, group_id, created_at, group_name in rows:
+            document_meta[document_id] = (group_id, group_name, created_at)
+
+    grouped_by_document: dict[UUID, SearchHit] = {}
+    for item in results:
+        group_id, group_name, created_at = document_meta.get(item.document_id, (None, None, None))
+        existing = grouped_by_document.get(item.document_id)
+        chunk = SearchChunkHit(
+            chunk_id=item.chunk_id,
+            score=item.score,
+            text=item.text,
+        )
+        if existing is None:
+            grouped_by_document[item.document_id] = SearchHit(
                 document_id=item.document_id,
+                group_id=group_id,
+                group_name=group_name,
+                created_at=created_at,
                 filename=item.filename,
                 score=item.score,
-                text=item.text,
+                chunks=[chunk],
             )
-            for item in results
-        ],
+            continue
+        existing.chunks.append(chunk)
+        if chunk.score > existing.score:
+            existing.score = chunk.score
+
+    grouped_results = sorted(grouped_by_document.values(), key=lambda item: item.score, reverse=True)[: payload.top_k]
+
+    for result in grouped_results:
+        result.chunks.sort(key=lambda chunk: chunk.score, reverse=True)
+
+    return SearchResponse(
+        results=grouped_results,
     )
 
 

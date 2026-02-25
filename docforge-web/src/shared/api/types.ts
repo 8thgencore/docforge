@@ -50,12 +50,20 @@ export interface SearchRequest {
   top_k?: number;
 }
 
-export interface SearchHit {
+export interface SearchChunkHit {
   chunk_id: UUID;
-  document_id: UUID;
-  filename: string;
   score: number;
   text: string;
+}
+
+export interface SearchHit {
+  document_id: UUID;
+  group_id: UUID | null;
+  group_name: string | null;
+  created_at: string | null;
+  filename: string;
+  score: number;
+  chunks: SearchChunkHit[];
 }
 
 export interface SearchResponse {

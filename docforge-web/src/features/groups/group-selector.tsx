@@ -11,14 +11,24 @@ interface GroupSelectorProps {
   value: string;
   onChange: (groupId: string) => void;
   allowAll?: boolean;
+  hideLabel?: boolean;
+  openUp?: boolean;
 }
 
-export const GroupSelector = ({ groups, value, onChange, allowAll = false }: GroupSelectorProps) => {
+export const GroupSelector = ({
+  groups,
+  value,
+  onChange,
+  allowAll = false,
+  hideLabel = false,
+  openUp = false,
+}: GroupSelectorProps) => {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const debouncedSearch = useDebounce(search.trim().toLowerCase(), 250);
   const allGroupsLabel = t("groups.allGroups");
+  const searchLabel = t("groups.searchLabel");
 
   const selectedGroup = useMemo(() => groups.find((group) => group.id === value), [groups, value]);
   const inputValue = isOpen ? search : (selectedGroup?.name ?? (allowAll && !value ? allGroupsLabel : search));
@@ -37,11 +47,12 @@ export const GroupSelector = ({ groups, value, onChange, allowAll = false }: Gro
   };
 
   return (
-    <div className="grid gap-2">
-      <Label htmlFor="group-search">{t("groups.searchLabel")}</Label>
+    <div className={cn("grid", hideLabel ? "gap-0" : "gap-2")}>
+      {!hideLabel && <Label htmlFor="group-search">{searchLabel}</Label>}
       <div className="relative">
         <Input
           id="group-search"
+          aria-label={searchLabel}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="none"
@@ -58,7 +69,12 @@ export const GroupSelector = ({ groups, value, onChange, allowAll = false }: Gro
           placeholder={t("groups.searchPlaceholder")}
         />
         {isOpen && (
-          <div className="border-border bg-background absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border shadow-md">
+          <div
+            className={cn(
+              "border-border bg-background absolute z-20 max-h-56 w-full overflow-auto rounded-md border shadow-md",
+              openUp ? "bottom-full mb-1" : "top-full mt-1",
+            )}
+          >
             {allowAll && (
               <button
                 type="button"

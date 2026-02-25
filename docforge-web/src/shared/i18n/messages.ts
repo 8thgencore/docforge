@@ -41,6 +41,7 @@ export const messages: Record<Language, Record<string, string>> = {
     "settings.statusDegraded": "Degraded",
     "settings.statusError": "Error",
     "settings.connectionOk": "Embedding provider is available",
+    "settings.embeddingHint": "Run a quick check to verify connectivity and model availability for embeddings.",
 
     "groups.create": "Create Group",
     "groups.list": "Groups",
@@ -109,6 +110,15 @@ export const messages: Record<Language, Record<string, string>> = {
     "search.loading": "Searching...",
     "search.empty": "No results yet.",
     "search.score": "Score",
+    "search.topKHint":
+      "Top K is the maximum number of relevant fragments from the knowledge base. The higher the value, the wider the context, but responses may be slower and less focused.",
+    "search.scoreHint": "Relevance score: the higher, the better the match.",
+    "search.group": "Group",
+    "search.added": "Added",
+    "search.unknownGroup": "Unknown group",
+    "search.unknownDate": "Unknown date",
+    "search.showMore": "Show more",
+    "search.showLess": "Show less",
 
     "chat.title": "RAG Chat",
     "chat.question": "Question",
@@ -116,6 +126,7 @@ export const messages: Record<Language, Record<string, string>> = {
     "chat.loading": "Generating...",
     "chat.insufficient": "Insufficient context was detected for this question.",
     "chat.citations": "Citations",
+    "chat.empty": "Ask a question to start the RAG chat.",
 
     "draft.title": "Draft Generator",
     "draft.length": "Length",
@@ -166,6 +177,7 @@ export const messages: Record<Language, Record<string, string>> = {
     "settings.statusDegraded": "Ограничено",
     "settings.statusError": "Ошибка",
     "settings.connectionOk": "Embedding-провайдер доступен",
+    "settings.embeddingHint": "Проверьте подключение и доступность embedding-модели одним нажатием.",
 
     "groups.create": "Создать группу",
     "groups.list": "Список групп",
@@ -234,6 +246,15 @@ export const messages: Record<Language, Record<string, string>> = {
     "search.loading": "Поиск...",
     "search.empty": "Пока нет результатов.",
     "search.score": "Оценка",
+    "search.topKHint":
+      "Top K - это максимальное число релевантных фрагментов из базы знаний. Чем больше значение, тем шире контекст, но ответ может быть медленнее и менее сфокусирован.",
+    "search.scoreHint": "Оценка релевантности: чем выше, тем точнее совпадение.",
+    "search.group": "Группа",
+    "search.added": "Добавлен",
+    "search.unknownGroup": "Неизвестная группа",
+    "search.unknownDate": "Неизвестная дата",
+    "search.showMore": "Показать еще",
+    "search.showLess": "Скрыть",
 
     "chat.title": "RAG чат",
     "chat.question": "Вопрос",
@@ -241,6 +262,7 @@ export const messages: Record<Language, Record<string, string>> = {
     "chat.loading": "Генерация...",
     "chat.insufficient": "Для этого вопроса недостаточно контекста.",
     "chat.citations": "Цитаты",
+    "chat.empty": "Задайте вопрос, чтобы начать RAG-диалог.",
 
     "draft.title": "Генератор черновика",
     "draft.length": "Объём",

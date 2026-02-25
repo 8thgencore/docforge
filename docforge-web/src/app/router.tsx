@@ -12,14 +12,16 @@ export const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AppLayout />}>
+        <Route element={<AppLayout contentMode="constrained" />}>
           <Route index element={<Navigate replace to="/groups" />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/ingestion" element={<IngestionPage />} />
           <Route path="/search" element={<SearchPage />} />
-          <Route path="/chat" element={<ChatPage />} />
           <Route path="/draft" element={<DraftPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+        <Route element={<AppLayout contentMode="full-bleed" />}>
+          <Route path="/chat" element={<ChatPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

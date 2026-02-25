@@ -1,7 +1,6 @@
 UV ?= uv
-UV_CACHE_DIR ?= ./.uv-cache
-UV_RUN = UV_CACHE_DIR=$(UV_CACHE_DIR) $(UV) run
-UV_SYNC = UV_CACHE_DIR=$(UV_CACHE_DIR) $(UV) sync
+UV_RUN = $(UV) run
+UV_SYNC = $(UV) sync
 
 STACK_LOCAL ?= docforge-local
 STACK_DEV ?= docforge-dev

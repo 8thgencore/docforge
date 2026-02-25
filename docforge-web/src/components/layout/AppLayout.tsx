@@ -36,6 +36,10 @@ interface MenuSection {
   title: string;
 }
 
+interface AppLayoutProps {
+  contentMode?: "constrained" | "full-bleed";
+}
+
 const readBool = (key: string, fallback: boolean) => {
   if (typeof window === "undefined") {
     return fallback;
@@ -47,7 +51,7 @@ const readBool = (key: string, fallback: boolean) => {
   return raw === "1";
 };
 
-export const AppLayout = () => {
+export const AppLayout = ({ contentMode = "constrained" }: AppLayoutProps) => {
   const { t } = useI18n();
   const location = useLocation();
   const overlayTitleId = useId();
@@ -299,10 +303,19 @@ export const AppLayout = () => {
         </div>
       )}
 
-      <main className={cn("px-4 py-6 md:px-8", isDockedOpen && (isCollapsed ? "md:ml-20" : "md:ml-72"))}>
-        <div className="mx-auto w-full max-w-6xl space-y-6">
+      <main
+        className={cn(
+          contentMode === "full-bleed" ? "h-[calc(100vh-73px)] min-h-0 overflow-hidden" : "px-4 py-6 md:px-8",
+          isDockedOpen && (isCollapsed ? "md:ml-20" : "md:ml-72"),
+        )}
+      >
+        {contentMode === "full-bleed" ? (
           <Outlet />
-        </div>
+        ) : (
+          <div className="mx-auto w-full max-w-6xl space-y-6">
+            <Outlet />
+          </div>
+        )}
       </main>
     </div>
   );
