@@ -123,7 +123,12 @@ export const IngestionPage = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="grid content-start gap-4">
-              <GroupSelector groups={groupsQuery.data ?? []} value={selectedGroupId} onChange={setSelectedGroupId} />
+              <GroupSelector
+                groups={groupsQuery.data ?? []}
+                value={selectedGroupId}
+                onChange={setSelectedGroupId}
+                label={t("ingestion.groupSearchLabel")}
+              />
               <Button
                 onClick={() => uploadMutation.mutate()}
                 disabled={uploadMutation.isPending || !selectedGroupId || !config.apiKey}

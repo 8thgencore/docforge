@@ -135,7 +135,9 @@ export const ChatPage = () => {
                             ? `chunk #${citation.chunk_index}`
                             : `chunk: ${citation.chunk_id}`}
                         </p>
-                        {citation.snippet ? <p className="text-muted-foreground mt-1 line-clamp-3">{citation.snippet}</p> : null}
+                        {citation.snippet ? (
+                          <p className="text-muted-foreground mt-1 line-clamp-3">{citation.snippet}</p>
+                        ) : null}
                         {buildDocumentHref(citation.document_url) ? (
                           <a
                             className="mt-2 inline-block underline"

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
+import { X } from "lucide-react";
 
-import { Input, Label } from "@/components/ui";
+import { Button, Input, Label } from "@/components/ui";
 import type { GroupResponse } from "@/shared/api/types";
 import { useDebounce } from "@/shared/hooks/use-debounce";
 import { useI18n } from "@/shared/i18n/use-i18n";
@@ -12,6 +13,7 @@ interface GroupSelectorProps {
   onChange: (groupId: string) => void;
   allowAll?: boolean;
   hideLabel?: boolean;
+  label?: string;
   openUp?: boolean;
 }
 
@@ -21,6 +23,7 @@ export const GroupSelector = ({
   onChange,
   allowAll = false,
   hideLabel = false,
+  label,
   openUp = false,
 }: GroupSelectorProps) => {
   const { t } = useI18n();
@@ -28,7 +31,7 @@ export const GroupSelector = ({
   const [isOpen, setIsOpen] = useState(false);
   const debouncedSearch = useDebounce(search.trim().toLowerCase(), 250);
   const allGroupsLabel = t("groups.allGroups");
-  const searchLabel = t("groups.searchLabel");
+  const searchLabel = label ?? t("groups.searchLabel");
 
   const selectedGroup = useMemo(() => groups.find((group) => group.id === value), [groups, value]);
   const inputValue = isOpen ? search : (selectedGroup?.name ?? (allowAll && !value ? allGroupsLabel : search));
@@ -46,6 +49,14 @@ export const GroupSelector = ({
     setIsOpen(false);
   };
 
+  const clearSearchAndFilter = () => {
+    setSearch("");
+    onChange("");
+    setIsOpen(true);
+  };
+
+  const showClearButton = isOpen ? search.length > 0 : search.length > 0 || value.length > 0;
+
   return (
     <div className={cn("grid", hideLabel ? "gap-0" : "gap-2")}>
       {!hideLabel && <Label htmlFor="group-search">{searchLabel}</Label>}
@@ -57,6 +68,7 @@ export const GroupSelector = ({
           autoCorrect="off"
           autoCapitalize="none"
           spellCheck={false}
+          className={cn(showClearButton && "pr-10")}
           value={inputValue}
           onFocus={() => setIsOpen(true)}
           onClick={() => setIsOpen(true)}
@@ -68,6 +80,22 @@ export const GroupSelector = ({
           }}
           placeholder={t("groups.searchPlaceholder")}
         />
+        {showClearButton && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 p-0"
+            aria-label={t("groups.clearSearch")}
+            title={t("groups.clearSearch")}
+            onMouseDown={(event) => {
+              event.preventDefault();
+              clearSearchAndFilter();
+            }}
+          >
+            <X className="size-4" />
+          </Button>
+        )}
         {isOpen && (
           <div
             className={cn(
