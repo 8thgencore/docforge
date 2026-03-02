@@ -40,9 +40,9 @@ export const GroupSelector = ({
     return groups.filter((group) => group.name.toLowerCase().includes(debouncedSearch));
   }, [debouncedSearch, groups]);
 
-  const selectGroup = (groupId: string, groupName = "") => {
+  const selectGroup = (groupId: string) => {
     onChange(groupId);
-    setSearch(groupName);
+    setSearch("");
     setIsOpen(false);
   };
 
@@ -97,7 +97,7 @@ export const GroupSelector = ({
                 )}
                 onMouseDown={(event) => {
                   event.preventDefault();
-                  selectGroup(group.id, group.name);
+                  selectGroup(group.id);
                 }}
               >
                 {group.name}

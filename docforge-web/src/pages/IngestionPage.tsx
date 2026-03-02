@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input } from "@/components/ui";
@@ -87,6 +87,8 @@ export const IngestionPage = () => {
     queryFn: () => api.listIngestions(config, selectedGroupId || undefined),
     enabled: Boolean(config.apiKey),
     refetchInterval: 2500,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
   });
 
   const pauseMutation = useMutation({
@@ -103,6 +105,10 @@ export const IngestionPage = () => {
   const ingestions = ingestionsQuery.data ?? [];
   const currentIngestions = ingestions.filter((job) => isActiveIngestionStatus(job.status));
   const recentIngestions = ingestions.filter((job) => !isActiveIngestionStatus(job.status));
+  const groupNameById = useMemo(
+    () => new Map((groupsQuery.data ?? []).map((group) => [group.id, group.name])),
+    [groupsQuery.data],
+  );
   const dateFormatter = new Intl.DateTimeFormat(language === "ru" ? "ru-RU" : "en-US", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -190,7 +196,7 @@ export const IngestionPage = () => {
             {currentIngestions.length > 0 && (
               <div className="grid gap-2">
                 <p className="text-sm font-medium">{t("ingestion.currentListTitle")}</p>
-                <div className="grid gap-2">
+                <div className="grid gap-2 md:grid-cols-2">
                   {currentIngestions.map((job) => (
                     <div key={job.id} className="border-border rounded-md border p-3">
                       {(() => {
@@ -209,6 +215,9 @@ export const IngestionPage = () => {
                             </div>
                             <p className="text-muted-foreground mt-1 text-xs">
                               {t("ingestion.createdAt")}: {dateFormatter.format(new Date(job.created_at))}
+                            </p>
+                            <p className="text-muted-foreground mt-1 text-xs">
+                              {t("search.group")}: {groupNameById.get(job.group_id) ?? t("search.unknownGroup")}
                             </p>
                             <div className="mt-2 grid gap-1.5 text-xs">
                               <p>
@@ -257,7 +266,7 @@ export const IngestionPage = () => {
 
             <div className="grid gap-2">
               <p className="text-sm font-medium">{t("ingestion.recentListTitle")}</p>
-              <div className="grid gap-2">
+              <div className="grid gap-2 md:grid-cols-2">
                 {recentIngestions.map((job) => (
                   <div key={job.id} className="border-border rounded-md border p-3">
                     {(() => {
@@ -276,6 +285,9 @@ export const IngestionPage = () => {
                           </div>
                           <p className="text-muted-foreground mt-1 text-xs">
                             {t("ingestion.createdAt")}: {dateFormatter.format(new Date(job.created_at))}
+                          </p>
+                          <p className="text-muted-foreground mt-1 text-xs">
+                            {t("search.group")}: {groupNameById.get(job.group_id) ?? t("search.unknownGroup")}
                           </p>
                           <div className="mt-2 grid gap-1.5 text-xs">
                             <p>
